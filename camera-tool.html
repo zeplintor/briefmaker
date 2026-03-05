@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Angle Tool</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --accent: #DCFF00; --danger: #FF3B30; }
+    html.light {
+      --bg: #F7F7F5; --surface: #FFFFFF;
+      --border: #111111; --border-soft: #DDDDDD;
+      --text: #111111; --muted: #777777;
+      --fill-1: #F0F0EE; --fill-2: #E8E8E6;
+      --scene-bg: #EDEDEB;
+    }
+    html.dark {
+      --bg: #111111; --surface: #1A1A1A;
+      --border: #FFFFFF; --border-soft: #333333;
+      --text: #F5F5F5; --muted: #888888;
+      --fill-1: #1F1F1F; --fill-2: #252525;
+      --scene-bg: #0D0D0D;
+    }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg); color: var(--text);
+      height: 100vh; overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: background 0.2s, color 0.2s;
+    }
+    .bc { font-family: 'Barlow Condensed', sans-serif; }
+    .fm { font-family: 'Fira Code', monospace; }
+
+    /* ACCENT BAR */
+    .accent-bar { height: 3px; background: var(--accent); flex-shrink: 0; }
+
+    /* HEADER */
+    #hdr {
+      height: 54px; flex-shrink: 0;
+      border-bottom: 2px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 16px;
+      position: relative; z-index: 10;
+    }
+    .hdr-left { display: flex; align-items: center; gap: 14px; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      border: 2px solid var(--border-soft); border-radius: 3px;
+      padding: 4px 10px; transition: all 0.1s;
+    }
+    .back-btn:hover { color: var(--text); border-color: var(--border); }
+
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.3rem; font-weight: 900;
+      letter-spacing: 0.04em; text-transform: uppercase; line-height: 1;
+    }
+    .logo-hl { background: var(--text); color: var(--accent); padding: 1px 4px; margin-left: 2px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border: 2px solid var(--border); border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      cursor: pointer; background: transparent; color: var(--text); transition: all 0.1s;
+    }
+    .btn:hover { background: var(--fill-1); }
+    .btn-ghost { border-color: var(--border-soft); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--border); color: var(--text); background: transparent; }
+    .btn-icon { padding: 5px 8px; }
+
+    .shot-mini {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem; font-weight: 900; letter-spacing: 0.06em;
+      background: var(--accent); color: #111;
+      padding: 2px 8px; border-radius: 2px;
+      min-width: 48px; text-align: center;
+    }
+
+    /* APP BODY */
+    #app {
+      flex: 1; display: flex; min-height: 0; overflow: hidden;
+    }
+
+    /* CANVAS */
+    #cv {
+      flex: 1; display: block; min-width: 0;
+      background: var(--scene-bg);
+      cursor: grab;
+    }
+    #cv:active { cursor: grabbing; }
+
+    /* PANEL */
+    #panel {
+      width: 290px; flex-shrink: 0;
+      border-left: 2px solid var(--border);
+      background: var(--surface);
+      overflow-y: auto; overflow-x: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .p-section {
+      padding: 16px;
+      border-bottom: 2px solid var(--border-soft);
+    }
+    .p-label {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.58rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+
+    /* SHOT BLOCK */
+    #p-abbr {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 3.5rem; font-weight: 900; line-height: 1;
+      color: var(--text); letter-spacing: -0.02em;
+      transition: all 0.2s;
+    }
+    #p-fr {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.02em; line-height: 1.1; margin-top: 2px;
+      transition: all 0.2s;
+    }
+    #p-en {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.65rem; color: var(--muted); margin-top: 4px;
+      transition: all 0.2s;
+    }
+    #p-lens {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: 'Fira Code', monospace; font-size: 0.62rem; font-weight: 600;
+      padding: 3px 8px; border-radius: 2px;
+      background: var(--accent); color: #111; border: 1.5px solid #111;
+      margin-top: 10px;
+    }
+
+    /* COMPASS */
+    #compass-wrap { display: flex; justify-content: center; padding: 16px; border-bottom: 2px solid var(--border-soft); }
+
+    /* METRICS */
+    .metric-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-label { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; }
+    .metric-val { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.03em; text-align: right; }
+
+    /* DESC */
+    #p-desc { font-size: 0.82rem; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+    #p-effect {
+      font-family: 'Fira Code', monospace; font-size: 0.62rem;
+      color: var(--muted); line-height: 1.6;
+      padding: 8px; background: var(--fill-1);
+      border-left: 3px solid var(--accent); border-radius: 2px;
+    }
+
+    /* PRESETS */
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .preset-btn {
+      padding: 8px 6px;
+      border: 2px solid var(--border-soft); border-radius: 3px;
+      background: transparent; color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.1s; text-align: center; line-height: 1.2;
+    }
+    .preset-btn:hover { border-color: var(--border); background: var(--fill-1); }
+    .preset-btn .preset-icon { font-size: 1rem; display: block; margin-bottom: 2px; }
+
+    /* ELEV BAR */
+    #elev-bar-wrap { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+    #elev-track {
+      width: 8px; border-radius: 4px; flex-shrink: 0;
+      background: linear-gradient(to bottom,
+        #fd79a8 0%, #a29bfe 14%, #74B9FF 28%,
+        var(--accent) 38%, var(--accent) 44%,
+        #FFC048 56%, #FF9F43 72%, #FF6B6B 100%
+      );
+      position: relative; min-height: 90px;
+    }
+    #elev-marker {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--surface); border: 3px solid var(--border);
+      transition: top 0.2s; top: 50%;
+    }
+    #elev-labels { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .elev-lbl {
+      font-family: 'Fira Code', monospace; font-size: 0.55rem;
+      color: var(--muted); line-height: 1; cursor: default;
+    }
+    .elev-lbl.active { color: var(--text); font-weight: 700; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 2px; }
+  </style>
+</head>
+
+<body>
+  <div class="accent-bar"></div>
+
+  <header id="hdr">
+    <div class="hdr-left">
+      <a href="hub.html" class="back-btn">← HUB</a>
+      <div class="logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Camera<span class="logo-hl">Tool</span>
+      </div>
+      <span class="fm" style="font-size:0.6rem;color:var(--muted)">Orbitez autour du sujet — l'angle se détecte en temps réel</span>
+    </div>
+    <div class="hdr-right">
+      <div id="shot-mini" class="shot-mini">—</div>
+      <button id="theme-btn" class="btn btn-ghost btn-icon" title="Thème">
+        <svg id="theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="app">
+    <canvas id="cv"></canvas>
+
+    <aside id="panel">
+      <!-- SHOT -->
+      <div class="p-section">
+        <div class="p-label">Taille de plan</div>
+        <div id="p-abbr">—</div>
+        <div id="p-fr">—</div>
+        <div id="p-en">—</div>
+        <div id="p-lens">—</div>
+      </div>
+
+      <!-- COMPASS -->
+      <div class="p-section" style="padding:12px 16px;">
+        <div class="p-label">Position horizontale</div>
+        <div id="compass-wrap">
+          <svg id="compass" viewBox="-52 -52 104 104" width="130" height="130" style="overflow:visible">
+            <circle r="48" fill="none" stroke="var(--border-soft)" stroke-width="1.5"/>
+            <circle r="48" fill="none" stroke="var(--border-soft)" stroke-width="0.5" stroke-dasharray="3 6" opacity="0.5"/>
+            <!-- Cardinal labels -->
+            <text x="0" y="-38" text-anchor="middle" dominant-baseline="central" fill="var(--text)" font-family="Barlow Condensed,sans-serif" font-size="9" font-weight="900" letter-spacing="1">FACE</text>
+            <text x="0" y="42" text-anchor="middle" dominant-baseline="central" fill="var(--muted)" font-family="Barlow Condensed,sans-serif" font-size="7" font-weight="700">DOS</text>
+            <text x="42" y="0" text-anchor="middle" dominant-baseline="central" fill="var(--muted)" font-family="Barlow Condensed,sans-serif" font-size="7" font-weight="700">R</text>
+            <text x="-42" y="0" text-anchor="middle" dominant-baseline="central" fill="var(--muted)" font-family="Barlow Condensed,sans-serif" font-size="7" font-weight="700">G</text>
+            <!-- Tick marks at 45° -->
+            <line x1="0" y1="-44" x2="0" y2="-48" stroke="var(--border-soft)" stroke-width="1.5"/>
+            <line x1="31.1" y1="-31.1" x2="33.9" y2="-33.9" stroke="var(--border-soft)" stroke-width="1"/>
+            <line x1="44" y1="0" x2="48" y2="0" stroke="var(--border-soft)" stroke-width="1"/>
+            <line x1="31.1" y1="31.1" x2="33.9" y2="33.9" stroke="var(--border-soft)" stroke-width="1"/>
+            <line x1="0" y1="44" x2="0" y2="48" stroke="var(--border-soft)" stroke-width="1.5"/>
+            <line x1="-31.1" y1="31.1" x2="-33.9" y2="33.9" stroke="var(--border-soft)" stroke-width="1"/>
+            <line x1="-44" y1="0" x2="-48" y2="0" stroke="var(--border-soft)" stroke-width="1"/>
+            <line x1="-31.1" y1="-31.1" x2="-33.9" y2="-33.9" stroke="var(--border-soft)" stroke-width="1"/>
+            <!-- Figure silhouette center -->
+            <ellipse rx="5" ry="7" fill="var(--border)" opacity="0.6"/>
+            <ellipse cy="-9" rx="3.5" ry="3.5" fill="var(--border)" opacity="0.6"/>
+            <!-- Facing direction triangle (yellow = front of figure) -->
+            <polygon points="0,-7 2,-13 -2,-13" fill="var(--accent)" stroke="#111" stroke-width="0.5"/>
+            <!-- Camera dot (rotates) -->
+            <g id="cam-dot" style="transform-origin:0 0; transform:rotate(0deg); transition: transform 0.08s linear;">
+              <circle cy="-44" r="6" fill="var(--accent)" stroke="var(--border)" stroke-width="2"/>
+              <text y="-44" text-anchor="middle" dominant-baseline="central" fill="#111" font-family="Barlow Condensed,sans-serif" font-size="6" font-weight="900">CAM</text>
+            </g>
+          </svg>
+        </div>
+        <div style="text-align:center; margin-top:-6px;">
+          <span id="p-horiz" class="fm" style="font-size:0.65rem;color:var(--text);font-weight:700;">—</span>
+          <span class="fm" style="font-size:0.58rem;color:var(--muted);margin-left:6px;">|</span>
+          <span id="p-angle" class="fm" style="font-size:0.62rem;color:var(--muted);margin-left:6px;">0°</span>
+        </div>
+      </div>
+
+      <!-- ELEVATION -->
+      <div class="p-section">
+        <div class="p-label">Élévation</div>
+        <div id="elev-bar-wrap">
+          <div id="elev-track"><div id="elev-marker"></div></div>
+          <div id="elev-labels">
+            <div class="elev-lbl" data-id="bird">Vue Aérienne</div>
+            <div class="elev-lbl" data-id="high">Plongée Forte</div>
+            <div class="elev-lbl" data-id="slight-high">Plongée</div>
+            <div class="elev-lbl" data-id="eye">— Niveau —</div>
+            <div class="elev-lbl" data-id="slight-low">Contre-Plongée</div>
+            <div class="elev-lbl" data-id="low">Contre-Plongée Forte</div>
+            <div class="elev-lbl" data-id="worm">Ver de Terre</div>
+          </div>
+        </div>
+        <div id="p-elev-desc" class="fm" style="font-size:0.62rem;color:var(--muted);line-height:1.5;">—</div>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="p-section">
+        <div class="p-label">Description / Effet</div>
+        <div id="p-desc" style="font-size:0.82rem;color:var(--text);line-height:1.6;margin-bottom:8px;">—</div>
+        <div id="p-effect" class="fm" style="font-size:0.62rem;color:var(--muted);line-height:1.6;padding:8px;background:var(--fill-1);border-left:3px solid var(--accent);border-radius:2px;">—</div>
+      </div>
+
+      <!-- DISTANCE -->
+      <div class="p-section">
+        <div class="p-label">Métriques</div>
+        <div class="metric-row">
+          <span class="metric-label">Distance</span>
+          <span id="m-dist" class="metric-val">—</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Hauteur caméra</span>
+          <span id="m-height" class="metric-val">—</span>
+        </div>
+      </div>
+
+      <!-- PRESETS -->
+      <div class="p-section" style="border-bottom:none; flex:1;">
+        <div class="p-label">Presets</div>
+        <div class="preset-grid" id="preset-grid"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    /* ── DATA ── */
+    const SHOTS = [
+      { abbr: 'TGP', fr: 'Très Gros Plan', en: 'Extreme Close-Up',
+        desc: "Isole un détail — un œil, des lèvres, une main. Intensité maximale.",
+        effect: "Tension extrême, intimité, malaise ou empathie puissante.",
+        lens: "85–135mm", maxDist: 1.0 },
+      { abbr: 'GP', fr: 'Gros Plan', en: 'Close-Up',
+        desc: "Encadre le visage entier avec peu d'espace autour.",
+        effect: "Connexion émotionnelle directe avec le personnage.",
+        lens: "50–85mm", maxDist: 1.8 },
+      { abbr: 'PR', fr: 'Plan Rapproché', en: 'Medium Close-Up',
+        desc: "Du milieu de la poitrine jusqu'au-dessus du crâne.",
+        effect: "Présence forte — engagement sans intimité extrême.",
+        lens: "35–50mm", maxDist: 2.6 },
+      { abbr: 'PA', fr: 'Plan Américain', en: 'Cowboy Shot',
+        desc: "De mi-cuisses jusqu'au-dessus de la tête. Né des westerns.",
+        effect: "Anticipe l'action, crée la tension, dynamise.",
+        lens: "35–50mm", maxDist: 3.6 },
+      { abbr: 'PT', fr: 'Plan Taille', en: 'Medium Shot',
+        desc: "De la ceinture jusqu'au-dessus de la tête.",
+        effect: "Équilibre naturel entre l'individu et son contexte.",
+        lens: "24–35mm", maxDist: 5.0 },
+      { abbr: 'PDE', fr: 'Plan Demi-Ensemble', en: 'Medium Long Shot',
+        desc: "Corps entier avec espace de respiration au sol et en hauteur.",
+        effect: "Le personnage ancré dans un espace — relation à l'environnement.",
+        lens: "24–35mm", maxDist: 7.5 },
+      { abbr: 'PE', fr: "Plan d'Ensemble", en: 'Long Shot',
+        desc: "Sujet visible en entier, l'environnement prend de l'importance.",
+        effect: "Distance émotionnelle — l'individu dans son monde.",
+        lens: "18–24mm", maxDist: 12.0 },
+      { abbr: 'PG', fr: 'Plan Général', en: 'Extreme Wide Shot',
+        desc: "Sujet minuscule ou à peine visible dans un vaste environnement.",
+        effect: "L'individu disparaît — nature, destin, épopée.",
+        lens: "14–18mm", maxDist: Infinity },
+    ];
+
+    const ELEVATIONS = [
+      { id: 'bird',       label: "Vue Aérienne",        minY: 4.0, desc: "Le sujet devient un élément graphique, perd son humanité." },
+      { id: 'high',       label: "Plongée Forte",        minY: 2.5, desc: "Réduit, vulnérabilise, écrase psychologiquement le sujet." },
+      { id: 'slight-high',label: "Plongée Légère",       minY: 1.80, desc: "Fragilise légèrement — le sujet perd de l'autorité." },
+      { id: 'eye',        label: "Niveau des Yeux",      minY: 1.45, desc: "Position neutre et naturelle — égalité spectateur/sujet." },
+      { id: 'slight-low', label: "Contre-Plongée",       minY: 0.9,  desc: "Valorise, renforce l'autorité et la puissance." },
+      { id: 'low',        label: "Contre-Plongée Forte", minY: 0.3,  desc: "Amplifie la domination — donne une stature monumentale." },
+      { id: 'worm',       label: "Ver de Terre",         minY: -Infinity, desc: "Caméra au sol inclinée vers le haut — effet monumental extrême." },
+    ];
+
+    function getShot(dist) {
+      for (const s of SHOTS) { if (dist <= s.maxDist) return s; }
+      return SHOTS[SHOTS.length - 1];
+    }
+    function getElev(y) {
+      for (const e of ELEVATIONS) { if (y >= e.minY) return e; }
+      return ELEVATIONS[ELEVATIONS.length - 1];
+    }
+    function getHoriz(deg) {
+      const a = ((deg % 360) + 360) % 360;
+      if (a < 22.5 || a >= 337.5) return { label: 'Face', abbr: 'FACE' };
+      if (a < 67.5)  return { label: '¾ Droite', abbr: '3/4 D' };
+      if (a < 112.5) return { label: 'Profil Droit', abbr: 'PROFIL D' };
+      if (a < 157.5) return { label: '¾ Dos Droite', abbr: '3/4 DD' };
+      if (a < 202.5) return { label: 'Dos', abbr: 'DOS' };
+      if (a < 247.5) return { label: '¾ Dos Gauche', abbr: '3/4 DG' };
+      if (a < 292.5) return { label: 'Profil Gauche', abbr: 'PROFIL G' };
+      return { label: '¾ Gauche', abbr: '3/4 G' };
+    }
+
+    /* ── THEME ── */
+    let dark = localStorage.getItem('ct_dark') === 'true';
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.classList.toggle('light', !dark);
+      localStorage.setItem('ct_dark', dark);
+      if (renderer) {
+        renderer.setClearColor(dark ? 0x0D0D0D : 0xEDEDEB);
+        figureMeshes.forEach(m => {
+          if (m.userData.isBody) m.material.color.setHex(dark ? 0x555555 : 0xBBBBBB);
+          if (m.userData.isFloor) { m.material.color.setHex(dark ? 0x1a1a1a : 0xE0E0DE); }
+        });
+        gridHelper.material.color.setHex(dark ? 0x333333 : 0xAAAAAA);
+        gridHelper.material.opacity = dark ? 0.4 : 0.3;
+      }
+      document.getElementById('theme-icon').innerHTML = dark
+        ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+        : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+    document.getElementById('theme-btn').addEventListener('click', () => { dark = !dark; applyTheme(); });
+
+    /* ── SCENE ── */
+    const canvas = document.getElementById('cv');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor(dark ? 0x0D0D0D : 0xEDEDEB);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.set(0, 1.62, 5.5);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.target.set(0, 0.9, 0);
+    controls.minDistance = 0.4;
+    controls.maxDistance = 22;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.update();
+
+    /* ── LIGHTING ── */
+    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    sun.position.set(4, 8, 4);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.camera.near = 0.1;
+    sun.shadow.camera.far = 30;
+    sun.shadow.camera.top = 5;
+    sun.shadow.camera.bottom = -2;
+    sun.shadow.camera.left = -5;
+    sun.shadow.camera.right = 5;
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.4);
+    fill.position.set(-3, 3, -3);
+    scene.add(fill);
+
+    /* ── FLOOR ── */
+    const figureMeshes = [];
+    const floorGeo = new THREE.PlaneGeometry(20, 20);
+    const floorMat = new THREE.MeshLambertMaterial({ color: dark ? 0x1a1a1a : 0xE0E0DE });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    floor.userData.isFloor = true;
+    figureMeshes.push(floor);
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(20, 20, dark ? 0x333333 : 0xAAAAAA, dark ? 0x333333 : 0xAAAAAA);
+    gridHelper.material.opacity = dark ? 0.4 : 0.3;
+    gridHelper.material.transparent = true;
+    scene.add(gridHelper);
+
+    /* ── FIGURE ── */
+    function makeFigure() {
+      const g = new THREE.Group();
+      const bodyMat = new THREE.MeshLambertMaterial({ color: dark ? 0x555555 : 0xBBBBBB });
+      const accentMat = new THREE.MeshLambertMaterial({ color: 0xDCFF00 });
+
+      function add(geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) {
+        const m = new THREE.Mesh(geo, mat);
+        m.position.set(x, y, z);
+        m.rotation.set(rx, ry, rz);
+        m.castShadow = true;
+        m.userData.isBody = mat === bodyMat;
+        figureMeshes.push(m);
+        g.add(m);
+      }
+
+      // Head
+      add(new THREE.SphereGeometry(0.135, 16, 12), bodyMat, 0, 1.70, 0);
+      // Face indicator (yellow nose)
+      add(new THREE.SphereGeometry(0.038, 8, 6), accentMat, 0, 1.695, 0.148);
+      // Neck
+      add(new THREE.CylinderGeometry(0.055, 0.06, 0.1, 10), bodyMat, 0, 1.56, 0);
+      // Torso
+      add(new THREE.BoxGeometry(0.38, 0.50, 0.20), bodyMat, 0, 1.21, 0);
+      // Hips
+      add(new THREE.BoxGeometry(0.34, 0.26, 0.18), bodyMat, 0, 0.87, 0);
+      // Upper arms
+      add(new THREE.CylinderGeometry(0.055, 0.048, 0.28, 10), bodyMat, -0.255, 1.20, 0, 0, 0,  0.18);
+      add(new THREE.CylinderGeometry(0.055, 0.048, 0.28, 10), bodyMat,  0.255, 1.20, 0, 0, 0, -0.18);
+      // Forearms
+      add(new THREE.CylinderGeometry(0.044, 0.038, 0.25, 10), bodyMat, -0.30, 0.95, 0, 0, 0,  0.22);
+      add(new THREE.CylinderGeometry(0.044, 0.038, 0.25, 10), bodyMat,  0.30, 0.95, 0, 0, 0, -0.22);
+      // Thighs
+      add(new THREE.CylinderGeometry(0.082, 0.072, 0.36, 10), bodyMat, -0.10, 0.62, 0);
+      add(new THREE.CylinderGeometry(0.082, 0.072, 0.36, 10), bodyMat,  0.10, 0.62, 0);
+      // Shins
+      add(new THREE.CylinderGeometry(0.062, 0.050, 0.34, 10), bodyMat, -0.10, 0.27, 0);
+      add(new THREE.CylinderGeometry(0.062, 0.050, 0.34, 10), bodyMat,  0.10, 0.27, 0);
+      // Feet
+      add(new THREE.BoxGeometry(0.10, 0.07, 0.20), bodyMat, -0.10, 0.04, 0.04);
+      add(new THREE.BoxGeometry(0.10, 0.07, 0.20), bodyMat,  0.10, 0.04, 0.04);
+
+      return g;
+    }
+    scene.add(makeFigure());
+
+    /* ── PRESETS ── */
+    const PRESETS = [
+      { label: 'Face / Niveau', icon: '👤', pos: [0, 1.62, 5.0], target: [0, 0.9, 0] },
+      { label: 'Gros Plan', icon: '🔍', pos: [0, 1.65, 1.5], target: [0, 1.65, 0] },
+      { label: 'Plongée', icon: '⬇', pos: [0, 3.5, 3.5], target: [0, 0.9, 0] },
+      { label: 'Contre-Plongée', icon: '⬆', pos: [0, 0.4, 3.8], target: [0, 0.9, 0] },
+      { label: 'Profil Droit', icon: '◀', pos: [5.0, 1.62, 0], target: [0, 0.9, 0] },
+      { label: 'Dos', icon: '🔙', pos: [0, 1.62, -5.0], target: [0, 0.9, 0] },
+      { label: 'Vue Aérienne', icon: '🦅', pos: [0.01, 8, 0.01], target: [0, 0, 0] },
+      { label: 'Plan Général', icon: '🌐', pos: [0, 4, 12], target: [0, 0.9, 0] },
+    ];
+
+    let animating = false, animStart = 0, animDur = 700;
+    let camFrom = null, camTo = null, tgtFrom = null, tgtTo = null;
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    function goTo(pos, target) {
+      camFrom = camera.position.clone();
+      tgtFrom = controls.target.clone();
+      camTo = new THREE.Vector3(...pos);
+      tgtTo = new THREE.Vector3(...target);
+      animStart = performance.now();
+      animating = true;
+    }
+
+    const grid2 = document.getElementById('preset-grid');
+    PRESETS.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'preset-btn';
+      btn.innerHTML = `<span class="preset-icon">${p.icon}</span>${p.label}`;
+      btn.addEventListener('click', () => goTo(p.pos, p.target));
+      grid2.appendChild(btn);
+    });
+
+    /* ── PANEL UPDATE ── */
+    const headOrigin = new THREE.Vector3(0, 1.70, 0);
+    let lastAbbr = '';
+
+    function updatePanel() {
+      const pos = camera.position;
+      const dist = pos.distanceTo(headOrigin);
+      const horizDist = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+      const angleDeg = ((Math.atan2(pos.x, pos.z) * 180 / Math.PI) + 360) % 360;
+
+      const shot = getShot(dist);
+      const elev = getElev(pos.y);
+      const horiz = getHoriz(angleDeg);
+
+      // Mini badge in header
+      const mini = document.getElementById('shot-mini');
+      if (mini.textContent !== shot.abbr) mini.textContent = shot.abbr;
+
+      // Shot block
+      if (shot.abbr !== lastAbbr) {
+        document.getElementById('p-abbr').textContent = shot.abbr;
+        document.getElementById('p-fr').textContent = shot.fr;
+        document.getElementById('p-en').textContent = shot.en;
+        document.getElementById('p-lens').textContent = '⌀ ' + shot.lens;
+        document.getElementById('p-desc').textContent = shot.desc;
+        document.getElementById('p-effect').textContent = shot.effect;
+        lastAbbr = shot.abbr;
+      }
+
+      // Compass rotation
+      document.getElementById('cam-dot').style.transform = `rotate(${angleDeg.toFixed(1)}deg)`;
+      document.getElementById('p-horiz').textContent = horiz.label;
+      document.getElementById('p-angle').textContent = angleDeg.toFixed(0) + '°';
+
+      // Elevation bar (clamp camY between 0 and 6)
+      const elevPct = Math.max(0, Math.min(1, (pos.y - 0) / 6));
+      const markerTop = (1 - elevPct) * 100;
+      document.getElementById('elev-marker').style.top = markerTop + '%';
+
+      // Elevation labels
+      document.querySelectorAll('.elev-lbl').forEach(el => {
+        el.classList.toggle('active', el.dataset.id === elev.id);
+      });
+      document.getElementById('p-elev-desc').textContent = elev.desc;
+
+      // Metrics
+      document.getElementById('m-dist').textContent = dist.toFixed(2) + ' u';
+      document.getElementById('m-height').textContent = pos.y.toFixed(2) + ' u';
+    }
+
+    /* ── RESIZE ── */
+    function resize() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (canvas.width !== w || canvas.height !== h) {
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+    }
+
+    /* ── LOOP ── */
+    function animate(now) {
+      requestAnimationFrame(animate);
+      resize();
+
+      if (animating) {
+        const t = Math.min((now - animStart) / animDur, 1);
+        const et = easeOutCubic(t);
+        camera.position.lerpVectors(camFrom, camTo, et);
+        controls.target.lerpVectors(tgtFrom, tgtTo, et);
+        controls.update();
+        if (t >= 1) animating = false;
+      } else {
+        controls.update();
+      }
+
+      updatePanel();
+      renderer.render(scene, camera);
+    }
+
+    applyTheme();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

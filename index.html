@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROD-FLOW — Brief Cristal & Taous</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #DCFF00;
+      --danger: #FF3B30;
+    }
+    html.light {
+      --bg: #F7F7F5;
+      --surface: #FFFFFF;
+      --border: #111111;
+      --border-soft: #CCCCCC;
+      --text: #111111;
+      --muted: #777777;
+      --fill-1: #F0F0EE;
+      --fill-2: #E8E8E6;
+    }
+    html.dark {
+      --bg: #111111;
+      --surface: #1A1A1A;
+      --border: #FFFFFF;
+      --border-soft: #333333;
+      --text: #F5F5F5;
+      --muted: #888888;
+      --fill-1: #1F1F1F;
+      --fill-2: #252525;
+    }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    .bc { font-family: 'Barlow Condensed', sans-serif; }
+    .fc { font-family: 'Fira Code', monospace; }
+
+    /* ── ACCENT BAR ── */
+    .accent-bar {
+      height: 3px;
+      background: var(--accent);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* ── FIELD ── */
+    .field {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid var(--border-soft);
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field:focus { border-color: var(--border); }
+    .field::placeholder { color: var(--muted); }
+
+    /* ── TAG ── */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 3px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 2px solid var(--border-soft);
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.1s;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .tag:hover { border-color: var(--border); color: var(--text); }
+    .tag.on { border-color: var(--border); background: var(--text); color: var(--bg); }
+    html.dark .tag.on { background: var(--accent); color: #111; border-color: var(--accent); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.1s;
+      background: transparent;
+      color: var(--text);
+    }
+    .btn-primary { background: var(--text); color: var(--bg); border-color: var(--border); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent); color: #111; border-color: #111; }
+    .btn-primary:disabled { background: var(--fill-2); color: var(--muted); border-color: var(--border-soft); cursor: not-allowed; }
+    .btn-ghost { border-color: var(--border-soft); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--border); color: var(--text); }
+    .btn-danger { border-color: var(--danger); color: var(--danger); background: transparent; }
+    .btn-danger:hover { background: var(--danger); color: white; }
+    .btn-accent { background: var(--accent); color: #111; border-color: #111; }
+    .btn-accent:hover { background: var(--text); color: var(--bg); border-color: var(--border); }
+    .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+
+    /* ── TEMPLATE CARDS ── */
+    .tpl-card {
+      position: relative;
+      background: var(--surface);
+      border: 2px solid var(--border-soft);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-align: left;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .tpl-card:hover { border-color: var(--border); }
+    .tpl-card.active { border-color: var(--border); box-shadow: 4px 4px 0 var(--border); }
+    .tpl-cristal.active { border-color: #6366f1; box-shadow: 4px 4px 0 #6366f1; }
+    .tpl-taous.active { border-color: #f59e0b; box-shadow: 4px 4px 0 #f59e0b; }
+    .tpl-assurance.active { border-color: #10b981; box-shadow: 4px 4px 0 #10b981; }
+    .tpl-strip {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .tpl-cristal .tpl-strip { background: #6366f1; }
+    .tpl-taous .tpl-strip { background: #f59e0b; }
+    .tpl-assurance .tpl-strip { background: #10b981; }
+    .tpl-vierge .tpl-strip { background: var(--border-soft); }
+
+    /* ── STEPPER ── */
+    .step-num {
+      width: 30px; height: 30px;
+      border-radius: 2px;
+      border: 2px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem; font-weight: 900;
+      color: var(--muted);
+      background: var(--surface);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .step-num.active { background: var(--accent); border-color: #111; color: #111; }
+    .step-num.done { background: var(--text); border-color: var(--text); color: var(--bg); }
+
+    /* ── PROGRESS ── */
+    .progress-track { height: 3px; background: var(--border-soft); margin-bottom: 20px; }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    html.dark .progress-fill { background: var(--accent); }
+
+    /* ── RANGE SLIDER ── */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border-soft);
+      outline: none;
+      cursor: pointer;
+      border-radius: 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 2px;
+      background: var(--text);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { background: var(--accent); border-color: #111; }
+
+    /* ── CHECKBOXES ── */
+    input[type="checkbox"], input[type="radio"] {
+      accent-color: var(--text);
+      width: 16px; height: 16px;
+      cursor: pointer;
+    }
+
+    /* ── LIVRABLE CHECK CELLS ── */
+    .lv-cell {
+      width: 42px; height: 42px;
+      border: 2px solid var(--border-soft);
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.1s;
+      margin: 0 auto;
+    }
+    .lv-cell:hover { border-color: var(--border); }
+    .lv-cell.on { background: var(--text); border-color: var(--border); }
+    html.dark .lv-cell.on { background: var(--accent); border-color: var(--accent); }
+
+    /* ── BRIEF PREVIEW ── */
+    .brief-pre {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.67rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── HACA ALERT ── */
+    .haca-alert {
+      background: rgba(255,59,48,0.07);
+      border: 2px solid var(--danger);
+      border-radius: 3px;
+      padding: 12px 16px;
+      animation: stepFade 0.2s ease-out;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-soft); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes stepFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .step-anim { animation: stepFade 0.22s ease-out; }
+
+    /* ── MOBILE PANELS ── */
+    .panel-form, .panel-preview { display: flex; }
+    @media (max-width: 1023px) {
+      .panel-form { display: none; }
+      .panel-form.active { display: flex !important; }
+      .panel-preview { display: none; }
+      .panel-preview.active { display: flex !important; }
+      .mobile-tabs { display: flex !important; }
+    }
+    @media (min-width: 1024px) {
+      .panel-form, .panel-preview { display: flex !important; }
+      .mobile-tabs { display: none !important; }
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      .no-print { display: none !important; }
+      #print-area { display: block !important; padding: 32px; }
+      .accent-bar { display: none; }
+      body { background: white !important; color: black !important; }
+    }
+    #print-area { display: none; }
+  </style>
+</head>
+
+<body>
+  <div class="accent-bar"></div>
+  <div id="root"></div>
+  <div id="print-area"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    /* ═══════════════════════════════════════════
+       ICONS
+    ═══════════════════════════════════════════ */
+    const Ico = ({ ch, size = 16 }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{ flexShrink: 0 }}
+        dangerouslySetInnerHTML={{ __html: ch }}
+      />
+    );
+
+    const paths = {
+      moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+      sun: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+      chevR: '<polyline points="9 18 15 12 9 6"/>',
+      chevL: '<polyline points="15 18 9 12 15 6"/>',
+      copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+      alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+      grid: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+      eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+      refresh: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.14"/>',
+      trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    };
+
+    /* ═══════════════════════════════════════════
+       CONSTANTS
+    ═══════════════════════════════════════════ */
+    const TEMPLATES = {
+      cristal: {
+        id: 'cristal', label: 'Cristal', subtitle: 'Intimité', icon: '💧',
+        desc: 'Pureté · Authenticité · Émotion',
+        virageStrategique: "Valoriser la pureté et l'authenticité de la source. Créer une connexion émotionnelle intime entre la marque et le consommateur.",
+        atmospheres: ['Feutrée', 'Onirique', 'Organique'],
+        elementsKeys: ['Eau', 'Vapeur', 'Mains', 'Lumière naturelle'],
+        ton: 'Chaleureux', sensualite: 2,
+        origineCasting: ['Nord-Africain', 'Méditerranéen'], droits: '2 ans',
+        voixOff: true, voixOffLangue: 'Arabe',
+        accentHex: '#6366f1',
+      },
+      taous: {
+        id: 'taous', label: 'Taous', subtitle: 'Luxe / Sensation', icon: '✨',
+        desc: 'Raffinement · Élégance · Désir',
+        virageStrategique: "Positionner Taous comme symbole de raffinement et d'élégance. Évoquer la sensorialité et le désir.",
+        atmospheres: ['Cinématographique', 'Onirique'],
+        elementsKeys: ['Or', 'Plantes', 'Texture', 'Soie'],
+        ton: 'Mystérieux', sensualite: 3,
+        origineCasting: ['Méditerranéen', 'International'], droits: '2 ans',
+        voixOff: true, voixOffLangue: 'Français',
+        accentHex: '#f59e0b',
+      },
+      assurance: {
+        id: 'assurance', label: 'Assurance', subtitle: 'Témoignage', icon: '🤝',
+        desc: 'Confiance · Humanité · Authenticité',
+        virageStrategique: "Établir la confiance par des témoignages authentiques. Humaniser la marque.",
+        atmospheres: ['Dynamique'],
+        elementsKeys: ['Famille', 'Sourires', 'Environnement urbain'],
+        ton: 'Institutionnel', sensualite: 0,
+        origineCasting: ['Nord-Africain', 'Urbain'], droits: '1 an',
+        voixOff: true, voixOffLangue: 'Arabe',
+        accentHex: '#10b981',
+      },
+      vierge: {
+        id: 'vierge', label: 'Brief', subtitle: 'Vierge', icon: '📋',
+        desc: 'Partir de zéro',
+        virageStrategique: '', atmospheres: [], elementsKeys: [],
+        ton: '', sensualite: 0, origineCasting: [], droits: '',
+        voixOff: false, voixOffLangue: '',
+        accentHex: '#888888',
+      },
+    };
+
+    const ATMOSPHERES_LIST = ['Feutrée', 'Onirique', 'Dynamique', 'Organique', 'Cinématographique'];
+    const TONS_LIST = ['Mystérieux', 'Chaleureux', 'Épique', 'Institutionnel'];
+    const CASTINGS_LIST = ['Nord-Africain', 'Méditerranéen', 'Urbain', 'International'];
+    const DROITS_LIST = ['1 an', '2 ans', '3 ans', 'Perpétuel'];
+    const LANGUES_LIST = ['Arabe', 'Français', 'Arabe & Français', 'Tamazight', 'Anglais'];
+    const DUREES = ['45s', '30s', '25s', '15s', '10s'];
+    const FORMATS = ['16:9', '9:16'];
+    const SENSUALITE_LABELS = ['Abstrait', 'Ombre', 'Suggéré', 'Peau visible', 'Explicite'];
+    const STEPS = ['En-tête & Stratégie', 'Univers Visuel', 'Juridique & Casting', 'Livrables'];
+
+    const INITIAL_STATE = {
+      nomProjet: '', template: null, virageStrategique: '',
+      atmospheres: [], elementsKeys: [], ton: '',
+      ratios: { '16:9': false, '9:16': false },
+      sensualite: 0, origineCasting: [], droits: '',
+      voixOff: false, voixOffLangue: 'Arabe',
+      livrables: {}, notesFinals: '',
+    };
+
+    /* ═══════════════════════════════════════════
+       MARKDOWN GENERATOR
+    ═══════════════════════════════════════════ */
+    function generateMarkdown(data) {
+      const tpl = data.template ? TEMPLATES[data.template] : null;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      const elements = data.elementsKeys.filter(e => e && e.trim());
+      const ratiosList = Object.entries(data.ratios).filter(([,v]) => v).map(([k]) => k).join(' · ') || '—';
+      const castingList = data.origineCasting.join(', ') || '—';
+      const sensuLabel = SENSUALITE_LABELS[data.sensualite] || '—';
+      const hacaAlert = data.sensualite > 2
+        ? '\n⚠️  ALERTE HACA : Niveau de sensualité élevé — Vérifier conformité avant diffusion !'
+        : '';
+
+      let totalFiles = 0;
+      const rows = FORMATS.map(fmt => {
+        const cells = DUREES.map(d => {
+          const checked = data.livrables[`${fmt}-${d}`];
+          if (checked) totalFiles++;
+          return checked ? '  ✓  ' : '  —  ';
+        });
+        return `| **${fmt}** | ${cells.join(' | ')} |`;
+      }).join('\n');
+
+      const livrablesSection = totalFiles > 0
+        ? `**Total fichiers finaux : ${totalFiles}**\n\n| Format | ${DUREES.join(' | ')} |\n|--------|${DUREES.map(() => ':----:').join('|')}|\n${rows}`
+        : '_Aucun livrable sélectionné_';
+
+      const notesSection = data.notesFinals ? `\n## E. NOTES FINALES\n\n${data.notesFinals}\n` : '';
+
+      return `# BRIEF DE PRODUCTION
+_PROD-FLOW — Le Générateur de Brief Cristal & Taous_
+_Généré le ${dateStr}_
+
+---
+
+## A. EN-TÊTE & STRATÉGIE
+
+| Champ              | Valeur                          |
+|--------------------|---------------------------------|
+| **Projet**         | ${data.nomProjet || '—'}        |
+| **Template**       | ${tpl ? `${tpl.label} — ${tpl.subtitle}` : '—'} |
+| **Date**           | ${dateStr}                      |
+
+### Virage Stratégique
+> ${data.virageStrategique || '—'}
+
+---
+
+## B. UNIVERS VISUEL (LOOK & FEEL)
+
+**Atmosphères :** ${data.atmospheres.join(' · ') || '—'}
+
+**Éléments Clés :** ${elements.join(' · ') || '—'}
+
+| Paramètre      | Valeur                     |
+|----------------|----------------------------|
+| **Ton**        | ${data.ton || '—'}         |
+| **Résolution** | 4K UHD (3840×2160)         |
+| **Formats**    | ${ratiosList}              |
+
+---
+
+## C. CASTING & JURIDIQUE
+
+| Paramètre              | Valeur                               |
+|------------------------|--------------------------------------|
+| **Niveau Sensualité**  | ${data.sensualite}/4 — _${sensuLabel}_ |
+| **Origine Casting**    | ${castingList}                       |
+| **Droits**             | ${data.droits || '—'}                |
+| **Voix Off**           | ${data.voixOff ? `Oui — ${data.voixOffLangue}` : 'Non'} |
+${hacaAlert}
+
+---
+
+## D. MATRICE DES LIVRABLES
+
+${livrablesSection}
+${notesSection}---
+_Brief généré avec PROD-FLOW_`;
+    }
+
+    /* ═══════════════════════════════════════════
+       COMPONENTS
+    ═══════════════════════════════════════════ */
+    function SectionHeader({ num, title, subtitle }) {
+      return (
+        <div style={{ marginBottom: 24, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="bc" style={{
+              fontSize: '2.2rem', fontWeight: 900, lineHeight: 1,
+              opacity: 0.06, userSelect: 'none', flexShrink: 0,
+            }}>{String(num).padStart(2, '0')}</span>
+            <div>
+              <h2 className="bc" style={{
+                fontSize: '1.35rem', fontWeight: 900, letterSpacing: '0.02em',
+                textTransform: 'uppercase', lineHeight: 1.1,
+              }}>{title}</h2>
+              {subtitle && <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 3 }}>{subtitle}</p>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Label({ children, hint }) {
+      return (
+        <div style={{ marginBottom: 8 }}>
+          <div className="bc" style={{
+            fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--muted)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            {children}
+            {hint && <span className="fc" style={{ fontSize: '0.67rem', fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: 'var(--muted)', opacity: 0.8 }}>{hint}</span>}
+          </div>
+        </div>
+      );
+    }
+
+    function ProgressBar({ step }) {
+      const pct = (step / 4) * 100;
+      return (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            {STEPS.map((s, i) => {
+              const done = i + 1 < step;
+              const cur = i + 1 === step;
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                  <div className={`step-num${done ? ' done' : cur ? ' active' : ''}`}>
+                    {done ? <Ico ch={paths.check} size={14} /> : i + 1}
+                  </div>
+                  <span className="bc" style={{
+                    fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    color: cur ? 'var(--text)' : done ? 'var(--muted)' : 'var(--border-soft)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    display: cur ? 'block' : 'none',
+                  }}>{s}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP 1
+    ═══════════════════════════════════════════ */
+    function Step1({ data, onChange }) {
+      return (
+        <div className="step-anim">
+          <SectionHeader num={1} title="En-tête & Stratégie" subtitle="Définissez le projet et son cap stratégique." />
+
+          <div style={{ marginBottom: 20 }}>
+            <Label>Nom du Projet <span style={{ color: 'var(--danger)' }}>*</span></Label>
+            <input
+              type="text" className="field"
+              value={data.nomProjet}
+              onChange={e => onChange('nomProjet', e.target.value)}
+              placeholder="ex: CRISTAL_ESSENCE_2025_Q1"
+            />
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label>Template de Brief</Label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {Object.values(TEMPLATES).map(tpl => (
+                <button
+                  key={tpl.id}
+                  className={`tpl-card tpl-${tpl.id} ${data.template === tpl.id ? 'active' : ''}`}
+                  onClick={() => onChange('template', tpl.id)}
+                >
+                  <div className="tpl-strip" />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8, marginTop: 8 }}>
+                    <span style={{ fontSize: '1.3rem' }}>{tpl.icon}</span>
+                    {data.template === tpl.id && (
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 2,
+                        background: tpl.accentHex,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Ico ch={paths.check} size={12} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="bc" style={{ fontWeight: 900, fontSize: '0.9rem', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{tpl.label}</div>
+                  <div className="fc" style={{ fontSize: '0.65rem', color: tpl.accentHex, marginBottom: 4 }}>{tpl.subtitle}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{tpl.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label hint={data.template && data.template !== 'vierge' ? '· pré-rempli' : ''}>Virage Stratégique</Label>
+            <textarea
+              className="field" rows={5}
+              value={data.virageStrategique}
+              onChange={e => onChange('virageStrategique', e.target.value)}
+              placeholder="Décrivez l'orientation stratégique du projet..."
+              style={{ resize: 'vertical' }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP 2
+    ═══════════════════════════════════════════ */
+    function Step2({ data, onChange }) {
+      const [newEl, setNewEl] = useState('');
+
+      const toggleAtmo = atm => {
+        const cur = data.atmospheres;
+        onChange('atmospheres', cur.includes(atm) ? cur.filter(a => a !== atm) : [...cur, atm]);
+      };
+
+      const addElement = () => {
+        const v = newEl.trim();
+        if (v && !data.elementsKeys.includes(v)) {
+          onChange('elementsKeys', [...data.elementsKeys, v]);
+          setNewEl('');
+        }
+      };
+
+      return (
+        <div className="step-anim">
+          <SectionHeader num={2} title="Univers Visuel" subtitle="Définissez le look & feel de la production." />
+
+          <div style={{ marginBottom: 20 }}>
+            <Label hint="· multi-sélection">Atmosphère</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {ATMOSPHERES_LIST.map(atm => (
+                <button key={atm} className={`tag ${data.atmospheres.includes(atm) ? 'on' : ''}`} onClick={() => toggleAtmo(atm)}>
+                  {atm}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label hint="· éditables">Éléments Clés</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+              {data.elementsKeys.map((el, i) => (
+                <span key={i} className="tag on" style={{ paddingRight: 8 }}>
+                  {el}
+                  <span
+                    onClick={() => onChange('elementsKeys', data.elementsKeys.filter((_, j) => j !== i))}
+                    style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 4, cursor: 'pointer', opacity: 0.75 }}
+                  ><Ico ch={paths.x} size={11} /></span>
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text" className="field" style={{ flex: 1 }}
+                value={newEl} onChange={e => setNewEl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addElement()}
+                placeholder="Ajouter un élément... (Entrée)"
+              />
+              <button onClick={addElement} className="btn btn-primary btn-sm" style={{ flexShrink: 0, padding: '6px 14px' }}>
+                <Ico ch={paths.plus} size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label>Ton</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {TONS_LIST.map(ton => (
+                <button key={ton} className={`tag ${data.ton === ton ? 'on' : ''}`} onClick={() => onChange('ton', ton)}>
+                  {ton}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label>Résolution Technique</Label>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 16px',
+              background: 'var(--fill-1)',
+              border: '2px solid var(--border)',
+              borderRadius: 3,
+            }}>
+              <span className="fc" style={{ fontSize: '0.82rem', fontWeight: 600 }}>4K UHD — 3840×2160</span>
+              <span className="bc" style={{
+                fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.1em',
+                background: 'var(--text)', color: 'var(--bg)',
+                padding: '3px 8px', borderRadius: 2,
+              }}>VERROUILLÉ</span>
+            </div>
+          </div>
+
+          <div>
+            <Label>Formats de Diffusion</Label>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {FORMATS.map(fmt => (
+                <label key={fmt} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={data.ratios[fmt] || false}
+                    onChange={() => onChange('ratios', { ...data.ratios, [fmt]: !data.ratios[fmt] })}
+                  />
+                  <span className="fc" style={{ fontSize: '0.85rem', fontWeight: 600 }}>{fmt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP 3
+    ═══════════════════════════════════════════ */
+    function Step3({ data, onChange }) {
+      const showHACA = data.sensualite > 2;
+
+      const toggleCasting = origin => {
+        const cur = data.origineCasting;
+        onChange('origineCasting', cur.includes(origin) ? cur.filter(o => o !== origin) : [...cur, origin]);
+      };
+
+      return (
+        <div className="step-anim">
+          <SectionHeader num={3} title="Juridique & Casting" subtitle="Conformité HACA et droits de diffusion." />
+
+          <div style={{ marginBottom: 24 }}>
+            <Label>
+              Niveau de Sensualité
+              <span className="fc" style={{ marginLeft: 8, fontSize: '0.78rem', fontWeight: 600, textTransform: 'none', letterSpacing: 0, color: 'var(--text)', opacity: 0.75 }}>
+                {data.sensualite}/4 — {SENSUALITE_LABELS[data.sensualite]}
+              </span>
+            </Label>
+            <div style={{ marginBottom: 10 }}>
+              <input
+                type="range" min="0" max="4" value={data.sensualite}
+                onChange={e => onChange('sensualite', parseInt(e.target.value))}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+              {SENSUALITE_LABELS.map((lbl, i) => (
+                <span key={i} className="bc" style={{
+                  fontSize: '0.6rem', fontWeight: data.sensualite === i ? 900 : 600,
+                  color: data.sensualite === i ? 'var(--text)' : 'var(--border-soft)',
+                  transition: 'color 0.15s', textAlign: 'center', flex: 1,
+                }}>{lbl}</span>
+              ))}
+            </div>
+            {showHACA && (
+              <div className="haca-alert">
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <Ico ch={paths.alert} size={16} />
+                  <div>
+                    <div className="bc" style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '0.83rem', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Alerte HACA — Conformité Requise
+                    </div>
+                    <div style={{ color: 'var(--danger)', fontSize: '0.77rem', lineHeight: 1.55, opacity: 0.85 }}>
+                      Le niveau de sensualité dépasse le seuil autorisé. Une validation juridique est obligatoire avant toute diffusion sur les canaux algériens.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label hint="· multi-sélection">Origine Casting</Label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {CASTINGS_LIST.map(origin => (
+                <button key={origin} className={`tag ${data.origineCasting.includes(origin) ? 'on' : ''}`} onClick={() => toggleCasting(origin)}>
+                  {origin}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <Label>Durée des Droits <span style={{ color: 'var(--danger)' }}>*</span></Label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {DROITS_LIST.map(d => (
+                <div
+                  key={d}
+                  onClick={() => onChange('droits', d)}
+                  style={{
+                    padding: '14px 8px',
+                    textAlign: 'center',
+                    border: `2px solid ${data.droits === d ? 'var(--border)' : 'var(--border-soft)'}`,
+                    borderRadius: 3,
+                    background: data.droits === d ? 'var(--text)' : 'var(--surface)',
+                    cursor: 'pointer',
+                    transition: 'all 0.1s',
+                  }}
+                >
+                  <div className="bc" style={{
+                    fontSize: '1.05rem', fontWeight: 900,
+                    color: data.droits === d ? 'var(--bg)' : 'var(--text)',
+                  }}>{d}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Voix Off</Label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {[true, false].map(v => (
+                <button
+                  key={String(v)}
+                  className={`tag ${data.voixOff === v ? 'on' : ''}`}
+                  onClick={() => onChange('voixOff', v)}
+                >{v ? 'Oui' : 'Non'}</button>
+              ))}
+            </div>
+            {data.voixOff && (
+              <div style={{ animation: 'stepFade 0.2s ease-out' }}>
+                <div className="bc" style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8 }}>Langue</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {LANGUES_LIST.map(lang => (
+                    <button key={lang} className={`tag ${data.voixOffLangue === lang ? 'on' : ''}`} onClick={() => onChange('voixOffLangue', lang)}>
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       STEP 4
+    ═══════════════════════════════════════════ */
+    function Step4({ data, onChange }) {
+      const total = Object.values(data.livrables).filter(Boolean).length;
+
+      const toggle = (fmt, dur) => {
+        const key = `${fmt}-${dur}`;
+        onChange('livrables', { ...data.livrables, [key]: !data.livrables[key] });
+      };
+
+      const selectAll = () => {
+        const all = {};
+        FORMATS.forEach(f => DUREES.forEach(d => { all[`${f}-${d}`] = true; }));
+        onChange('livrables', all);
+      };
+
+      return (
+        <div className="step-anim">
+          <SectionHeader num={4} title="Matrice des Livrables" subtitle="Sélectionnez les formats et durées à livrer." />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 16px',
+              background: total > 0 ? 'var(--text)' : 'var(--fill-1)',
+              border: '2px solid var(--border)',
+              borderRadius: 3, transition: 'all 0.2s',
+            }}>
+              <Ico ch={paths.grid} size={15} />
+              <span className="fc" style={{ fontWeight: 700, fontSize: '1rem', color: total > 0 ? 'var(--bg)' : 'var(--muted)' }}>
+                {total}
+              </span>
+              <span className="bc" style={{
+                fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: total > 0 ? 'var(--bg)' : 'var(--muted)',
+              }}>fichier{total !== 1 ? 's' : ''}</span>
+            </div>
+            <button onClick={selectAll} className="btn btn-ghost btn-sm">Tout sélectionner</button>
+            {total > 0 && (
+              <button onClick={() => onChange('livrables', {})} className="btn btn-danger btn-sm">
+                <Ico ch={paths.trash} size={13} /> Effacer
+              </button>
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto', marginBottom: 24 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid var(--border)' }}>
+              <thead>
+                <tr style={{ background: 'var(--text)' }}>
+                  <th style={{ padding: '10px 14px', textAlign: 'left' }}>
+                    <span className="bc" style={{ fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--bg)' }}>Format</span>
+                  </th>
+                  {DUREES.map(d => (
+                    <th key={d} style={{ padding: '10px 8px', textAlign: 'center' }}>
+                      <span className="fc" style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--bg)' }}>{d}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {FORMATS.map((fmt) => (
+                  <tr key={fmt} style={{ borderTop: '2px solid var(--border)' }}>
+                    <td style={{ padding: '12px 14px' }}>
+                      <span className="fc" style={{
+                        fontSize: '0.8rem', fontWeight: 600,
+                        background: 'var(--fill-1)',
+                        padding: '4px 10px', borderRadius: 2,
+                      }}>{fmt}</span>
+                    </td>
+                    {DUREES.map(dur => {
+                      const key = `${fmt}-${dur}`;
+                      const checked = data.livrables[key] || false;
+                      return (
+                        <td key={dur} style={{ padding: '10px 8px', textAlign: 'center', borderLeft: '1px solid var(--border-soft)' }}>
+                          <div className={`lv-cell ${checked ? 'on' : ''}`} onClick={() => toggle(fmt, dur)}>
+                            {checked && <Ico ch={paths.check} size={16} />}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <Label>Notes Finales & Instructions</Label>
+            <textarea
+              className="field" rows={5}
+              value={data.notesFinals}
+              onChange={e => onChange('notesFinals', e.target.value)}
+              placeholder="Références visuelles, contraintes techniques, instructions de livraison, contacts..."
+              style={{ resize: 'vertical' }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       BRIEF PREVIEW
+    ═══════════════════════════════════════════ */
+    function BriefPreview({ data }) {
+      const [copied, setCopied] = useState(false);
+      const markdown = generateMarkdown(data);
+
+      const handleCopy = async () => {
+        try {
+          await navigator.clipboard.writeText(markdown);
+        } catch {
+          const el = document.createElement('textarea');
+          el.value = markdown;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      };
+
+      const handlePDF = () => {
+        const printArea = document.getElementById('print-area');
+        printArea.innerHTML = `<style>
+          @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;600&family=Fira+Code:wght@400;500&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: 'Barlow', sans-serif; background: white; color: #111; }
+          .accent { height: 3px; background: #DCFF00; }
+          .wrap { max-width: 720px; margin: 0 auto; padding: 36px 24px; }
+          .head { border-bottom: 2px solid #111; padding-bottom: 14px; margin-bottom: 22px; }
+          .head h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
+          .head p { font-size: 11px; color: #666; margin-top: 4px; font-family: 'Fira Code', monospace; }
+          pre { font-family: 'Fira Code', monospace; font-size: 10px; line-height: 1.8; white-space: pre-wrap; }
+        </style>
+        <div class="accent"></div>
+        <div class="wrap">
+          <div class="head">
+            <h1>PROD-FLOW</h1>
+            <p>Brief de Production — ${(data.nomProjet || 'Sans titre').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+          </div>
+          <pre>${markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+        </div>`;
+        window.print();
+        setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+      };
+
+      const lines = markdown.split('\n');
+      const renderLine = (line, i) => {
+        let style = { display: 'block', color: 'var(--muted)' };
+        let content = line;
+
+        if (line.startsWith('# ')) {
+          style = { display: 'block', color: 'var(--text)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '0.02em', marginTop: 4 };
+        } else if (line.startsWith('## ')) {
+          style = { display: 'block', color: 'var(--text)', fontWeight: 700, marginTop: 10, borderBottom: '1px solid var(--border-soft)', paddingBottom: 2 };
+        } else if (line.startsWith('### ')) {
+          style = { display: 'block', color: 'var(--text)', fontWeight: 600, marginTop: 6, opacity: 0.8 };
+        } else if (line.startsWith('> ')) {
+          style = { display: 'block', color: 'var(--text)', borderLeft: '3px solid var(--border)', paddingLeft: 10, fontStyle: 'italic' };
+        } else if (line.startsWith('---')) {
+          style = { display: 'block', borderBottom: '1px solid var(--border-soft)', marginTop: 4, marginBottom: 4 };
+          content = '';
+        } else if (line.includes('⚠️')) {
+          style = { display: 'block', color: 'var(--danger)', fontWeight: 700, background: 'rgba(255,59,48,0.08)', padding: '3px 8px' };
+        } else if (line.startsWith('_') && line.endsWith('_')) {
+          style = { display: 'block', color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.63rem' };
+        } else if (line.startsWith('|')) {
+          style = { display: 'block', color: 'var(--muted)', fontSize: '0.63rem' };
+        } else if (line.startsWith('**Total')) {
+          style = { display: 'block', color: 'var(--text)', fontWeight: 700 };
+        }
+
+        return <span key={i} style={style}>{content || '\u00A0'}</span>;
+      };
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Ico ch={paths.file} size={14} />
+              <span className="bc" style={{ fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Aperçu Brief</span>
+              {data.nomProjet && (
+                <span className="fc" style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>· {data.nomProjet}</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={handleCopy}
+                className={`btn btn-sm ${copied ? 'btn-accent' : 'btn-ghost'}`}
+              >
+                {copied ? <Ico ch={paths.check} size={12} /> : <Ico ch={paths.copy} size={12} />}
+                {copied ? 'Copié !' : 'Markdown'}
+              </button>
+              <button onClick={handlePDF} className="btn btn-primary btn-sm">
+                <Ico ch={paths.download} size={12} />
+                PDF
+              </button>
+            </div>
+          </div>
+
+          <div style={{
+            flex: 1, overflowY: 'auto',
+            background: 'var(--fill-1)',
+            border: '2px solid var(--border)',
+            borderRadius: 3,
+            padding: '14px 16px',
+          }}>
+            <pre className="brief-pre">
+              {lines.map(renderLine)}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       MAIN APP
+    ═══════════════════════════════════════════ */
+    function App() {
+      const [darkMode, setDarkMode] = useState(false);
+      const [step, setStep] = useState(1);
+      const [mobileTab, setMobileTab] = useState('form');
+
+      const [data, setData] = useState(() => {
+        try {
+          const saved = localStorage.getItem('prodflow_v3');
+          return saved ? JSON.parse(saved) : { ...INITIAL_STATE };
+        } catch { return { ...INITIAL_STATE }; }
+      });
+
+      useEffect(() => {
+        try { localStorage.setItem('prodflow_v3', JSON.stringify(data)); } catch {}
+      }, [data]);
+
+      useEffect(() => {
+        document.documentElement.classList.toggle('dark', darkMode);
+        document.documentElement.classList.toggle('light', !darkMode);
+      }, [darkMode]);
+
+      const handleChange = useCallback((field, value) => {
+        if (field === 'template') {
+          const tpl = TEMPLATES[value];
+          setData(prev => ({
+            ...prev, template: value,
+            virageStrategique: tpl.virageStrategique || prev.virageStrategique,
+            atmospheres: tpl.atmospheres.length ? [...tpl.atmospheres] : prev.atmospheres,
+            elementsKeys: tpl.elementsKeys.length ? [...tpl.elementsKeys] : prev.elementsKeys,
+            ton: tpl.ton || prev.ton,
+            sensualite: tpl.sensualite,
+            origineCasting: [...tpl.origineCasting],
+            droits: tpl.droits || prev.droits,
+            voixOff: tpl.voixOff,
+            voixOffLangue: tpl.voixOffLangue || prev.voixOffLangue,
+          }));
+        } else {
+          setData(prev => ({ ...prev, [field]: value }));
+        }
+      }, []);
+
+      const resetDraft = () => {
+        if (window.confirm('Réinitialiser le formulaire ? Toutes les données seront perdues.')) {
+          setData({ ...INITIAL_STATE });
+          setStep(1);
+          localStorage.removeItem('prodflow_v3');
+        }
+      };
+
+      const canProceed = () => {
+        if (step === 1) return data.nomProjet.trim().length > 0 && data.template !== null;
+        if (step === 3) return data.droits !== '';
+        return true;
+      };
+
+      const tpl = data.template ? TEMPLATES[data.template] : null;
+
+      const stepContent = [
+        <Step1 data={data} onChange={handleChange} />,
+        <Step2 data={data} onChange={handleChange} />,
+        <Step3 data={data} onChange={handleChange} />,
+        <Step4 data={data} onChange={handleChange} />,
+      ];
+
+      return (
+        <div style={{ minHeight: '100vh', paddingTop: 3 }}>
+
+          {/* ── HEADER ── */}
+          <header className="no-print" style={{
+            position: 'sticky', top: 3, zIndex: 100,
+            borderBottom: '2px solid var(--border)',
+            background: 'var(--bg)',
+            padding: '0 24px', height: 56,
+            display: 'flex', alignItems: 'center',
+          }}>
+            <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 2,
+                  background: 'var(--text)', border: '2px solid var(--border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Ico ch={paths.layers} size={16} />
+                </div>
+                <div>
+                  <div className="bc" style={{ fontSize: '1.15rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', lineHeight: 1, color: 'var(--text)' }}>PROD-FLOW</div>
+                  <div className="fc" style={{ fontSize: '0.58rem', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: 1 }}>GÉNÉRATEUR DE BRIEF</div>
+                </div>
+                {tpl && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '3px 10px', borderRadius: 2,
+                    border: `2px solid ${tpl.accentHex}`,
+                    background: 'var(--fill-1)',
+                  }}>
+                    <span>{tpl.icon}</span>
+                    <span className="bc" style={{ fontWeight: 900, fontSize: '0.72rem', textTransform: 'uppercase', color: tpl.accentHex }}>{tpl.label}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {Object.keys(data).some(k => JSON.stringify(data[k]) !== JSON.stringify(INITIAL_STATE[k])) && (
+                  <button onClick={resetDraft} className="btn btn-ghost btn-sm">
+                    <Ico ch={paths.refresh} size={12} /> Réinitialiser
+                  </button>
+                )}
+                <button onClick={() => setDarkMode(!darkMode)} className="btn btn-ghost btn-sm" style={{ padding: '6px 10px' }}>
+                  {darkMode ? <Ico ch={paths.sun} size={15} /> : <Ico ch={paths.moon} size={15} />}
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* ── MOBILE TABS ── */}
+          <div className="no-print mobile-tabs" style={{ padding: '10px 16px', gap: 4, borderBottom: '2px solid var(--border)', background: 'var(--bg)' }}>
+            {['form', 'preview'].map(tab => (
+              <button key={tab} onClick={() => setMobileTab(tab)} className="btn" style={{
+                flex: 1,
+                background: mobileTab === tab ? 'var(--text)' : 'transparent',
+                color: mobileTab === tab ? 'var(--bg)' : 'var(--muted)',
+                borderColor: mobileTab === tab ? 'var(--border)' : 'var(--border-soft)',
+                fontSize: '0.8rem', padding: '8px',
+              }}>
+                {tab === 'form' ? '📝 Formulaire' : '👁 Aperçu Brief'}
+              </button>
+            ))}
+          </div>
+
+          {/* ── MAIN ── */}
+          <main style={{ maxWidth: 1400, margin: '0 auto', padding: '24px 20px', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+
+            {/* FORM PANEL */}
+            <div
+              className={`no-print panel-form ${mobileTab === 'form' ? 'active' : ''}`}
+              style={{ flex: '0 0 56%', maxWidth: '56%', flexDirection: 'column' }}
+            >
+              <ProgressBar step={step} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <span className="fc" style={{ fontSize: '0.63rem', fontWeight: 600, letterSpacing: '0.1em', color: 'var(--muted)' }}>ÉTAPE {step}/4</span>
+                <span style={{ color: 'var(--border-soft)' }}>·</span>
+                <span className="bc" style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{STEPS[step - 1]}</span>
+              </div>
+
+              <div className="card" style={{ padding: '28px', marginBottom: 16 }}>
+                {stepContent[step - 1]}
+              </div>
+
+              {!canProceed() && step < 4 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 14px', marginBottom: 12,
+                  background: 'rgba(220,255,0,0.12)',
+                  border: '2px solid var(--border)',
+                  borderRadius: 3,
+                }}>
+                  <Ico ch={paths.alert} size={14} />
+                  <span className="bc" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', fontSize: '0.72rem' }}>
+                    {step === 1 && (!data.nomProjet.trim() ? 'Saisissez le nom du projet' : 'Sélectionnez un template')}
+                    {step === 3 && 'Sélectionnez la durée des droits'}
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {step > 1 ? (
+                  <button onClick={() => setStep(s => s - 1)} className="btn btn-ghost">
+                    <Ico ch={paths.chevL} size={16} /> Précédent
+                  </button>
+                ) : <div />}
+
+                {step < 4 ? (
+                  <button
+                    onClick={() => canProceed() && setStep(s => s + 1)}
+                    disabled={!canProceed()}
+                    className="btn btn-primary"
+                  >
+                    Suivant <Ico ch={paths.chevR} size={16} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setMobileTab('preview')}
+                    className="btn btn-accent"
+                  >
+                    <Ico ch={paths.eye} size={16} /> Voir le Brief Final
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* PREVIEW PANEL */}
+            <div
+              className={`panel-preview ${mobileTab === 'preview' ? 'active' : ''}`}
+              style={{ flex: 1, position: 'sticky', top: 76, height: 'calc(100vh - 108px)', flexDirection: 'column' }}
+            >
+              <div className="card" style={{ padding: '18px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <BriefPreview data={data} />
+              </div>
+            </div>
+
+          </main>
+
+          {/* ── FOOTER ── */}
+          <footer className="no-print" style={{
+            borderTop: '2px solid var(--border)',
+            textAlign: 'center', padding: '14px 20px',
+          }}>
+            <span className="fc" style={{ fontSize: '0.62rem', letterSpacing: '0.08em', color: 'var(--muted)' }}>
+              PROD-FLOW · GÉNÉRATEUR DE BRIEF CRISTAL & TAOUS · {new Date().getFullYear()}
+            </span>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BriefMaster Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ══════════════════════════════════════════
+       RESET
+    ══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══════════════════════════════════════════
+       THEME VARIABLES
+    ══════════════════════════════════════════ */
+    :root {
+      --accent: #DCFF00;
+      --accent-dim: rgba(220,255,0,0.18);
+      --danger: #FF3B30;
+      --danger-dim: rgba(255,59,48,0.1);
+    }
+    html.light {
+      --bg: #F7F7F5;
+      --surface: #FFFFFF;
+      --border: #111111;
+      --border-soft: #DDDDDD;
+      --text: #111111;
+      --muted: #777777;
+      --fill-1: #F0F0EE;
+      --fill-2: #E8E8E6;
+    }
+    html.dark {
+      --bg: #111111;
+      --surface: #1A1A1A;
+      --border: #FFFFFF;
+      --border-soft: #333333;
+      --text: #F5F5F5;
+      --muted: #888888;
+      --fill-1: #1F1F1F;
+      --fill-2: #252525;
+    }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ══════════════════════════════════════════
+       TYPOGRAPHY
+    ══════════════════════════════════════════ */
+    .bc { font-family: 'Barlow Condensed', sans-serif; }
+    .fm { font-family: 'Fira Code', monospace; }
+
+    /* ══════════════════════════════════════════
+       INPUTS
+    ══════════════════════════════════════════ */
+    .inp {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 13px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .inp:focus { border-color: #DCFF00; background: rgba(220,255,0,0.05); }
+    .inp::placeholder { color: var(--muted); }
+    .inp-sel {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+      cursor: pointer;
+    }
+    html.dark .inp-sel option { background: #1A1A1A; }
+
+    /* ══════════════════════════════════════════
+       TAGS (brutalist rectangular)
+    ══════════════════════════════════════════ */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border: 1.5px solid var(--border-soft);
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.12s;
+      user-select: none;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .tag:hover { border-color: var(--border); color: var(--text); background: var(--fill-1); }
+    .tag.on { border-color: var(--border); background: var(--text); color: var(--bg); }
+    html.dark .tag.on { background: var(--accent); color: #111; border-color: var(--accent); }
+
+    /* ══════════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 3px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.12s;
+      border: 2px solid transparent;
+    }
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+    .btn-primary:hover { background: var(--accent); color: #111; border-color: var(--accent); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover { background: var(--fill-1); }
+    .btn-accent {
+      background: var(--accent);
+      color: #111111;
+      border-color: var(--accent);
+    }
+    .btn-accent:hover { opacity: 0.88; }
+    .btn-ghost {
+      background: var(--fill-1);
+      color: var(--muted);
+      border-color: var(--border-soft);
+    }
+    .btn-ghost:hover { border-color: var(--border); color: var(--text); background: var(--fill-2); }
+    .btn-sm { padding: 6px 13px; font-size: 12px; }
+    .btn-disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .btn-danger {
+      background: var(--danger-dim);
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { opacity: 0.8; }
+    .btn-ai {
+      background: #111111;
+      color: var(--accent);
+      border-color: #111111;
+    }
+    html.dark .btn-ai { background: var(--accent); color: #111; border-color: var(--accent); }
+    .btn-ai:hover { background: var(--accent); color: #111; border-color: var(--accent); }
+
+    /* ══════════════════════════════════════════
+       CARD
+    ══════════════════════════════════════════ */
+    .card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════════════
+       STEPPER
+    ══════════════════════════════════════════ */
+    .stepper { display: flex; align-items: center; width: 100%; margin-bottom: 20px; }
+    .step-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .step-wrap:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 13px; left: 50%;
+      width: 100%; height: 2px;
+      background: var(--border-soft);
+      z-index: 0;
+    }
+    .step-wrap.done:not(:last-child)::after { background: var(--border); }
+    .step-num {
+      width: 26px; height: 26px;
+      border: 2px solid var(--border-soft);
+      border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      background: var(--surface);
+      color: var(--muted);
+      position: relative; z-index: 1;
+      transition: all 0.2s;
+    }
+    .step-num.active { border-color: var(--border); color: var(--text); background: var(--accent); border-color: var(--text); }
+    html.dark .step-num.active { color: #111; }
+    .step-num.done { border-color: var(--border); background: var(--text); color: var(--bg); }
+    .step-lbl {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-top: 5px; text-align: center;
+      transition: color 0.2s;
+    }
+    .step-wrap.active .step-lbl { color: var(--text); }
+
+    /* ══════════════════════════════════════════
+       LABEL
+    ══════════════════════════════════════════ */
+    .lbl {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lbl-hint {
+      font-family: 'Barlow', sans-serif;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════════════ */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .anim { animation: fadeUp 0.22s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+    .slide-in { animation: slideIn 0.18s ease-out; }
+
+    /* ══════════════════════════════════════════
+       INPUTS RADIO/CHECK custom
+    ══════════════════════════════════════════ */
+    input[type="radio"], input[type="checkbox"] {
+      accent-color: #111111;
+      width: 15px; height: 15px; cursor: pointer;
+    }
+
+    /* ══════════════════════════════════════════
+       SCROLLBAR
+    ══════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 1px; }
+
+    /* ══════════════════════════════════════════
+       PANELS RESPONSIVE
+    ══════════════════════════════════════════ */
+    .panel-form, .panel-preview { display: flex; }
+    @media (max-width: 1023px) {
+      .panel-form { display: none; }
+      .panel-form.active { display: flex !important; }
+      .panel-preview { display: none; }
+      .panel-preview.active { display: flex !important; }
+      .mob-tabs { display: flex !important; }
+    }
+    @media (min-width: 1024px) {
+      .panel-form, .panel-preview { display: flex !important; }
+      .mob-tabs { display: none !important; }
+    }
+
+    /* ══════════════════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════════════════ */
+    .prog-track { height: 3px; background: var(--border-soft); width: 100%; }
+    .prog-fill { height: 100%; background: var(--text); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+    /* ══════════════════════════════════════════
+       BRIEF DOC PREVIEW
+    ══════════════════════════════════════════ */
+    .brief-doc { font-family: 'Barlow', sans-serif; font-size: 12.5px; }
+    .brief-doc .doc-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+    .brief-doc .doc-section { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 10px; margin: 16px 0 10px; }
+    .brief-doc .doc-section::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
+    .brief-doc .doc-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+    .brief-doc .doc-field { background: var(--fill-1); border: 1px solid var(--border-soft); padding: 7px 10px; border-radius: 2px; }
+    .brief-doc .doc-fk { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .brief-doc .doc-fv { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+    .brief-doc .doc-strat { border-left: 3px solid var(--text); padding-left: 10px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .brief-doc .doc-msg { background: var(--accent); border: 2px solid var(--text); padding: 9px 14px; font-size: 13px; font-weight: 700; color: #111; font-style: italic; margin: 8px 0; border-radius: 2px; }
+    html.dark .brief-doc .doc-msg { color: #111; }
+    .brief-doc .btags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .brief-doc .btag { font-size: 11px; font-weight: 700; padding: 3px 9px; border: 1.5px solid var(--border); border-radius: 2px; background: var(--text); color: var(--bg); letter-spacing: 0.02em; }
+    .brief-doc .doc-haca { display: flex; gap: 8px; background: var(--danger-dim); border: 1.5px solid var(--danger); padding: 8px 12px; border-radius: 2px; font-size: 11.5px; color: var(--danger); font-weight: 600; margin-top: 6px; }
+    .brief-doc .doc-total { display: inline-flex; align-items: center; gap: 7px; background: var(--text); color: var(--bg); padding: 5px 14px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 2px; margin-bottom: 8px; }
+    html.dark .brief-doc .doc-total { color: var(--bg); }
+    .brief-doc table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .brief-doc th { background: var(--text); color: var(--bg); padding: 6px 8px; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); }
+    .brief-doc th:first-child { text-align: left; }
+    .brief-doc td { padding: 6px 8px; border: 1px solid var(--border-soft); color: var(--muted); text-align: center; }
+    .brief-doc td:first-child { text-align: left; font-weight: 700; color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .brief-doc td.ok { color: var(--text); font-weight: 900; font-size: 14px; }
+
+    /* ══════════════════════════════════════════
+       MODAL
+    ══════════════════════════════════════════ */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
+    .modal-box { background: var(--surface); border: 2px solid var(--border); border-radius: 4px; width: 100%; max-width: 760px; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-prompt { font-family: 'Fira Code', monospace; font-size: 11.5px; line-height: 1.85; white-space: pre-wrap; color: var(--text); overflow-y: auto; flex: 1; padding: 20px 22px; background: var(--fill-1); }
+
+    /* ══════════════════════════════════════════
+       OPTION BUTTONS (lumière / ton)
+    ══════════════════════════════════════════ */
+    .opt-btn {
+      padding: 9px 14px;
+      border: 2px solid var(--border-soft);
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.12s;
+      background: var(--surface);
+      text-align: left;
+    }
+    .opt-btn:hover { border-color: var(--border); color: var(--text); background: var(--fill-1); }
+    .opt-btn.on { border-color: var(--border); background: var(--text); color: var(--bg); }
+
+    /* ══════════════════════════════════════════
+       VALIDATION BAR
+    ══════════════════════════════════════════ */
+    .val-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 13px; border: 1.5px solid var(--border);
+      border-radius: 2px; background: var(--accent-dim);
+      font-size: 12px; font-weight: 600;
+      color: var(--text); margin-bottom: 12px;
+    }
+
+    /* ══════════════════════════════════════════
+       PRINT
+    ══════════════════════════════════════════ */
+    @media print { .no-print { display: none !important; } }
+
+    /* ══════════════════════════════════════════
+       HEADER ACCENT BAR
+    ══════════════════════════════════════════ */
+    .accent-bar { height: 3px; background: var(--accent); width: 100%; }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    /* ── ICONS ─────────────────────────────── */
+    const Ic = ({ d, size = 16, style }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ flexShrink: 0, ...style }}>{d}</svg>
+    );
+    const IcR     = () => <Ic d={<polyline points="9 18 15 12 9 6"/>} />;
+    const IcL     = () => <Ic d={<polyline points="15 18 9 12 15 6"/>} />;
+    const IcCheck = ({ s = 14 }) => <Ic size={s} d={<polyline points="20 6 9 17 4 12"/>} />;
+    const IcX     = ({ s = 14 }) => <Ic size={s} d={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />;
+    const IcPlus  = ({ s = 14 }) => <Ic size={s} d={<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>} />;
+    const IcCopy  = ({ s = 14 }) => <Ic size={s} d={<><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>} />;
+    const IcPDF   = ({ s = 14 }) => <Ic size={s} d={<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></>} />;
+    const IcAlert = ({ s = 14 }) => <Ic size={s} d={<><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />;
+    const IcStar  = ({ s = 14 }) => <Ic size={s} d={<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>} />;
+    const IcGrid  = ({ s = 14 }) => <Ic size={s} d={<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></>} />;
+    const IcEye   = ({ s = 14 }) => <Ic size={s} d={<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>} />;
+    const IcMoon  = ({ s = 16 }) => <Ic size={s} d={<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>} />;
+    const IcSun   = ({ s = 16 }) => <Ic size={s} d={<><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>} />;
+    const IcReset = ({ s = 14 }) => <Ic size={s} d={<><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.14"/></>} />;
+
+    /* ── CONSTANTS ──────────────────────────── */
+    const TYPE_CONTENU    = ['Spot TV', 'Digital Film', 'Témoignage Client', 'Capsule Pédagogique', 'Film de Marque', 'Brand Documentary'];
+    const UNIVERS_LIST    = ['Luxe', 'Brut', 'Onirique', 'Minimaliste', 'Pop', 'Institutionnel', 'Organique', 'Cinématographique'];
+    const LUMIERE_LIST    = ['Feutrée', 'High-Key', 'Naturelle', 'Clair-Obscur'];
+    const TON_LIST        = ['Murmure', 'Épique', 'Chaleureux', 'Dynamique'];
+    const CAMERA_LIST     = ['Immersif', 'POV', 'Macro', 'Match-cuts', "Caméra à l'épaule", 'Steadicam', 'Drone', 'Timelapse'];
+    const RESOLUTION_LIST = ['4K UHD (3840×2160)', '8K (7680×4320)', 'HD 1080p (1920×1080)'];
+    const CASTING_TAGS    = ['Nord-Africain', 'Européen', 'Famille', 'Urbain', 'International', 'Jeune adulte', '25–40 ans', 'Sénior'];
+    const DROITS_LIST     = ['1 an', '2 ans', '3 ans', 'Perpétuel'];
+    const TERRITOIRE_LIST = ['Maroc', 'Algérie', 'Tunisie', 'Maghreb', 'France', 'MENA', 'Monde', 'Web uniquement'];
+    const SOUND_LIST      = ['ASMR', 'Orchestral', 'Rythmique', 'Nappe sonore', 'Électronique', 'Acoustique', 'Ambiant', 'Silence'];
+    const DUREES          = ['45s', '30s', '25s', '15s', '10s'];
+    const FORMAT_KEYS     = ['16:9', '9:16', '1:1'];
+    const FORMAT_LABELS   = { '16:9': '16:9 Horizontal', '9:16': '9:16 Vertical', '1:1': '1:1 Carré' };
+    const SENSUALITE      = ['Non applicable', 'Abstrait / Ombre', 'Suggéré / Peau visible'];
+    const SECTIONS        = ['Identité', 'Direction', 'Technique', 'Casting', 'Livrables', 'Audio'];
+
+    const INIT = {
+      client: '', projet: '', typeContenu: '', virageStrategique: '', messageCle: '',
+      universVisuel: [], elementsDominants: [], lumiere: '', tonNarratif: '',
+      mouvementsCamera: [], niveauSensualite: 0, resolution: '4K UHD (3840×2160)',
+      profilCasting: '', typesCasting: [], periodeDroits: '', territoires: [],
+      livrables: {},
+      soundDesign: [], etalonnage: '', notesFinals: '',
+    };
+
+    /* ── MARKDOWN GENERATOR ─────────────────── */
+    function genMarkdown(d) {
+      const now = new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      const total = Object.values(d.livrables).filter(Boolean).length;
+      const elems = d.elementsDominants.filter(e => e.trim()).join(' · ') || '—';
+      const livRows = FORMAT_KEYS.map(f => {
+        const cells = DUREES.map(dur => d.livrables[`${f}-${dur}`] ? '  ✓  ' : '  —  ').join(' | ');
+        return `| **${FORMAT_LABELS[f]}** | ${cells} |`;
+      }).join('\n');
+      const haca = d.niveauSensualite > 0 ? '\n> ⚠️ **HACA/ANRT :** Conformité requise avant diffusion Maroc\n' : '';
+      return `# BRIEF DE PRODUCTION\n_BriefMaster Pro · ${now}_\n\n---\n\n## A. IDENTITÉ & STRATÉGIE\n\n| Champ | Valeur |\n|---|---|\n| **Client** | ${d.client || '—'} |\n| **Projet** | ${d.projet || '—'} |\n| **Type** | ${d.typeContenu || '—'} |\n\n> ${d.virageStrategique || '—'}\n\n**"${d.messageCle || '—'}"**\n\n---\n\n## B. DIRECTION ARTISTIQUE\n\n**Univers :** ${d.universVisuel.join(' · ') || '—'}  \n**Éléments :** ${elems}  \n**Lumière :** ${d.lumiere || '—'} · **Ton :** ${d.tonNarratif || '—'}\n\n---\n\n## C. RÉALISATION & TECHNIQUE\n\n**Caméra :** ${d.mouvementsCamera.join(' · ') || '—'}  \n**Résolution :** ${d.resolution}  \n**Sensualité :** ${SENSUALITE[d.niveauSensualite]}${haca}\n\n---\n\n## D. CASTING & DROITS\n\n**Profil :** ${d.profilCasting || '—'}  \n**Types :** ${d.typesCasting.join(', ') || '—'}  \n**Droits :** ${d.periodeDroits || '—'} · **Territoires :** ${d.territoires.join(', ') || '—'}\n\n---\n\n## E. LIVRABLES — Total : ${total} fichier${total !== 1 ? 's' : ''}\n\n| Format | ${DUREES.join(' | ')} |\n|---|${DUREES.map(() => ':---:').join('|')}|\n${livRows}\n\n---\n\n## F. POST-PRODUCTION\n\n**Sound :** ${d.soundDesign.join(' · ') || '—'}  \n**Étalonnage :** ${d.etalonnage || '—'}  \n${d.notesFinals ? `\n${d.notesFinals}` : ''}\n\n---\n_BriefMaster Pro — Confidentiel_`;
+    }
+
+    /* ── AI PROMPT GENERATOR ────────────────── */
+    function genAIPrompt(d) {
+      const elems = d.elementsDominants.filter(e => e.trim()).join(', ') || 'à définir';
+      const mainDur = DUREES.find(dur => FORMAT_KEYS.some(f => d.livrables[`${f}-${dur}`])) || '30s';
+      return `Tu es un directeur artistique et réalisateur publicitaire de renom.
+Ta mission : Créer un storyboard détaillé de 10 plans pour le brief ci-dessous.
+
+════════════════════════════════════════════
+BRIEF — ${(d.client || 'CLIENT').toUpperCase()}
+════════════════════════════════════════════
+📌 PROJET    : ${d.projet || 'Non défini'}
+🎬 FORMAT    : ${d.typeContenu || 'Film publicitaire'} · Durée : ${mainDur}
+💡 MESSAGE   : "${d.messageCle || 'Non défini'}"
+🔄 VIRAGE    : ${d.virageStrategique || 'Non défini'}
+
+DIRECTION ARTISTIQUE :
+• Univers    : ${d.universVisuel.join(', ') || 'Libre'}
+• Lumière    : ${d.lumiere || 'Naturelle'}
+• Ton        : ${d.tonNarratif || 'Chaleureux'}
+• Éléments   : ${elems}
+
+TECHNIQUE :
+• Caméra     : ${d.mouvementsCamera.join(', ') || 'Libre'}
+• Résolution : ${d.resolution}
+• Sound      : ${d.soundDesign.join(', ') || 'À définir'}
+• Étalonnage : ${d.etalonnage || 'À définir'}
+
+════════════════════════════════════════════
+INSTRUCTIONS
+════════════════════════════════════════════
+Génère exactement 10 plans dans ce tableau :
+
+| Plan | Durée | Description Visuelle | Mouvement Caméra | Dialogue / VO | Son | Émotion |
+|------|-------|---------------------|-----------------|---------------|-----|---------|
+
+CONTRAINTES :
+✅ Univers : ${d.universVisuel.join(', ') || 'libre'}
+✅ Éléments : ${elems}
+✅ Lumière : ${d.lumiere || 'naturelle'} — Ton : ${d.tonNarratif || 'chaleureux'}
+✅ Message : "${d.messageCle || 'message de marque'}"
+✅ Plan 10 = logo + signature marque obligatoire
+
+Réponds UNIQUEMENT avec le tableau. Pas d'introduction.`;
+    }
+
+    /* ── PDF EXPORT ─────────────────────────── */
+    function exportPDF(d) {
+      const now = new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+      const total = Object.values(d.livrables).filter(Boolean).length;
+      const elems = d.elementsDominants.filter(e => e.trim());
+      const mkTags = arr => arr.length ? arr.map(t => `<span class="btag">${t}</span>`).join('') : '<em>—</em>';
+      const livRows = FORMAT_KEYS.map(f => {
+        const cells = DUREES.map(dur => {
+          const ok = d.livrables[`${f}-${dur}`];
+          return `<td style="text-align:center;font-weight:${ok?'900':'400'};color:${ok?'#111':'#ccc'};font-size:${ok?'15px':'13px'}">${ok?'✓':'—'}</td>`;
+        }).join('');
+        return `<tr><td><strong>${FORMAT_LABELS[f]}</strong></td>${cells}</tr>`;
+      }).join('');
+      const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Brief ${d.client || ''}</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#111;font-size:13px;line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto;padding:0 36px 48px}
+  .hdr{background:#111;padding:32px 36px;margin-bottom:36px}
+  .hdr-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px}
+  .logo{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#DCFF00}
+  .hdr h1{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;letter-spacing:0.04em;text-transform:uppercase;color:#fff;line-height:1}
+  .hdr .sub{font-size:12px;color:rgba(255,255,255,0.45);margin-top:8px;letter-spacing:0.06em}
+  h2{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;color:#777;border-bottom:2px solid #111;padding-bottom:6px;margin:28px 0 14px;display:flex;align-items:center;gap:0}
+  h3{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#999;margin:14px 0 6px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+  .fbox{background:#f5f5f3;border:1px solid #e0e0e0;padding:9px 12px}
+  .fkey{font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#999;margin-bottom:2px}
+  .fval{font-size:13px;font-weight:600}
+  blockquote{border-left:3px solid #111;padding-left:12px;color:#555;font-style:italic;margin:8px 0;font-size:13px}
+  .key-msg{background:#DCFF00;border:2px solid #111;padding:10px 14px;font-size:15px;font-style:italic;font-weight:700;color:#111;margin:8px 0}
+  .btags{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0}
+  .btag{background:#111;color:#fff;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+  .haca{background:#fff0ee;border:2px solid #ff3b30;padding:9px 13px;color:#ff3b30;font-size:12px;font-weight:700;margin:8px 0;display:flex;gap:8px}
+  table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+  th{background:#111;color:#fff;padding:8px 7px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;border:1px solid #111}
+  th:first-child{text-align:left}
+  td{padding:7px;border:1px solid #e0e0e0}
+  .chip{display:inline-flex;align-items:center;background:#DCFF00;color:#111;padding:5px 14px;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;border:2px solid #111}
+  footer{margin-top:40px;padding-top:12px;border-top:2px solid #111;font-size:10px;color:#bbb;display:flex;justify-content:space-between;letter-spacing:0.06em;text-transform:uppercase}
+  @media print{@page{margin:16mm}body{font-size:12px}}
+</style></head><body>
+<div class="hdr">
+  <div class="hdr-top"><span class="logo">BriefMaster Pro</span><span style="font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:0.06em;text-transform:uppercase">${now}</span></div>
+  <h1>${d.client || 'Client'}<br>${d.projet || 'Projet'}</h1>
+  ${d.typeContenu ? `<div class="sub">${d.typeContenu}</div>` : ''}
+</div>
+<div class="wrap">
+<h2>A — Identité &amp; Stratégie</h2>
+<div class="grid2"><div class="fbox"><div class="fkey">Client</div><div class="fval">${d.client||'—'}</div></div><div class="fbox"><div class="fkey">Projet</div><div class="fval">${d.projet||'—'}</div></div><div class="fbox"><div class="fkey">Type de Contenu</div><div class="fval">${d.typeContenu||'—'}</div></div></div>
+${d.virageStrategique?`<h3>Virage Stratégique</h3><blockquote>${d.virageStrategique}</blockquote>`:''}
+${d.messageCle?`<h3>Message Clé</h3><div class="key-msg">"${d.messageCle}"</div>`:''}
+<h2>B — Direction Artistique</h2>
+<h3>Univers Visuel</h3><div class="btags">${mkTags(d.universVisuel)}</div>
+<h3>Éléments Dominants</h3><div class="btags">${mkTags(elems)}</div>
+<div class="grid2"><div class="fbox"><div class="fkey">Lumière</div><div class="fval">${d.lumiere||'—'}</div></div><div class="fbox"><div class="fkey">Ton Narratif</div><div class="fval">${d.tonNarratif||'—'}</div></div></div>
+<h2>C — Réalisation &amp; Technique</h2>
+<h3>Mouvements Caméra</h3><div class="btags">${mkTags(d.mouvementsCamera)}</div>
+<div class="grid2"><div class="fbox"><div class="fkey">Résolution</div><div class="fval">${d.resolution}</div></div><div class="fbox"><div class="fkey">Sensualité</div><div class="fval">${SENSUALITE[d.niveauSensualite]}</div></div></div>
+${d.niveauSensualite>0?'<div class="haca">⚠ Vérifier conformité HACA / ANRT avant diffusion Maroc</div>':''}
+<h2>D — Casting &amp; Droits</h2>
+${d.profilCasting?`<blockquote>${d.profilCasting}</blockquote>`:''}
+<div class="btags">${mkTags(d.typesCasting)}</div>
+<div class="grid2"><div class="fbox"><div class="fkey">Durée des Droits</div><div class="fval">${d.periodeDroits||'—'}</div></div><div class="fbox"><div class="fkey">Territoires</div><div class="fval">${d.territoires.join(', ')||'—'}</div></div></div>
+<h2>E — Matrice des Livrables</h2>
+<div class="chip">Total : ${total} fichier${total!==1?'s':''} final${total!==1?'ux':''}</div>
+<table><thead><tr><th>Format</th>${DUREES.map(dur=>`<th>${dur}</th>`).join('')}</tr></thead><tbody>${livRows}</tbody></table>
+<h2>F — Post-Production &amp; Audio</h2>
+<h3>Sound Design</h3><div class="btags">${mkTags(d.soundDesign)}</div>
+${d.etalonnage?`<h3>Étalonnage</h3><blockquote>${d.etalonnage}</blockquote>`:''}
+${d.notesFinals?`<h3>Notes</h3><p style="font-size:13px;color:#444;line-height:1.7">${d.notesFinals.replace(/\n/g,'<br>')}</p>`:''}
+<footer><span>BriefMaster Pro — Confidentiel</span><span>${now}</span></footer>
+</div><script>setTimeout(()=>window.print(),350);<\/script></body></html>`;
+      const w = window.open('', '_blank');
+      if (w) { w.document.write(html); w.document.close(); }
+    }
+
+    /* ── SHARED UI ──────────────────────────── */
+    function Lbl({ children, hint }) {
+      return <div className="lbl">{children}{hint && <span className="lbl-hint">— {hint}</span>}</div>;
+    }
+
+    function Pill({ label, active, onClick, onRemove }) {
+      return (
+        <span className={`tag ${active ? 'on' : ''}`} onClick={onClick}>
+          {label}
+          {onRemove && (
+            <span onClick={e => { e.stopPropagation(); onRemove(); }}
+              style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 1, opacity: 0.6 }}>
+              <IcX s={10} />
+            </span>
+          )}
+        </span>
+      );
+    }
+
+    /* ── STEPPER ────────────────────────────── */
+    function Stepper({ step }) {
+      return (
+        <div className="stepper">
+          {SECTIONS.map((lbl, i) => {
+            const n = i + 1;
+            const done = n < step, cur = n === step;
+            return (
+              <div key={i} className={`step-wrap ${done ? 'done' : ''} ${cur ? 'active' : ''}`}>
+                <div className={`step-num ${done ? 'done' : ''} ${cur ? 'active' : ''}`}>
+                  {done ? <IcCheck s={11} /> : n}
+                </div>
+                <span className="step-lbl">{lbl}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ── SECTIONS ───────────────────────────── */
+    function Sec1({ d, on }) {
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>01</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Identité & Stratégie</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Définissez le socle stratégique du projet.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+            <div>
+              <Lbl>Client <span style={{ color: 'var(--danger)' }}>*</span></Lbl>
+              <input className="inp" value={d.client} onChange={e => on('client', e.target.value)} placeholder="Nom du client" />
+            </div>
+            <div>
+              <Lbl>Projet <span style={{ color: 'var(--danger)' }}>*</span></Lbl>
+              <input className="inp" value={d.projet} onChange={e => on('projet', e.target.value)} placeholder="MARQUE_SPOT_2025" />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl>Type de Contenu <span style={{ color: 'var(--danger)' }}>*</span></Lbl>
+            <select className="inp inp-sel" value={d.typeContenu} onChange={e => on('typeContenu', e.target.value)}>
+              <option value="">— Sélectionner —</option>
+              {TYPE_CONTENU.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl>Virage Stratégique</Lbl>
+            <textarea className="inp" rows={4} value={d.virageStrategique}
+              onChange={e => on('virageStrategique', e.target.value)}
+              placeholder="Ex: Passer de la street food à l'intimité domestique. Repositionner vers le premium."
+              style={{ resize: 'none' }} />
+          </div>
+
+          <div>
+            <Lbl hint={`${d.messageCle.length}/120 car.`}>Message Clé</Lbl>
+            <input className="inp" maxLength={120} value={d.messageCle}
+              onChange={e => on('messageCle', e.target.value)}
+              placeholder="L'unique chose que le spectateur doit retenir." />
+          </div>
+        </div>
+      );
+    }
+
+    function Sec2({ d, on }) {
+      const [newEl, setNewEl] = useState('');
+      const toggleU = u => on('universVisuel', d.universVisuel.includes(u) ? d.universVisuel.filter(x => x !== u) : [...d.universVisuel, u]);
+      const addEl = () => {
+        const v = newEl.trim();
+        if (v) { on('elementsDominants', [...d.elementsDominants, v]); setNewEl(''); }
+      };
+
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>02</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Direction Artistique</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Définissez le Look & Feel de la production.</p>
+          </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <Lbl hint="multi-sélection">Univers Visuel</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {UNIVERS_LIST.map(u => <Pill key={u} label={u} active={d.universVisuel.includes(u)} onClick={() => toggleU(u)} />)}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <Lbl hint="éditables">Éléments Dominants</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8, minHeight: 28 }}>
+              {d.elementsDominants.map((el, i) => (
+                <Pill key={i} label={el} active={true}
+                  onRemove={() => on('elementsDominants', d.elementsDominants.filter((_, j) => j !== i))} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="inp" style={{ flex: 1 }} value={newEl} onChange={e => setNewEl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addEl()}
+                placeholder="Eau, Mousse, Or, Vapeur, Peau... (Entrée)" />
+              <button onClick={addEl} className="btn btn-secondary" style={{ padding: '0 14px', minWidth: 40 }}>
+                <IcPlus s={15} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <Lbl>Lumière & Ambiance</Lbl>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {LUMIERE_LIST.map(l => (
+                  <button key={l} className={`opt-btn ${d.lumiere === l ? 'on' : ''}`}
+                    onClick={() => on('lumiere', l)}>{l}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Lbl>Ton Narratif</Lbl>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {TON_LIST.map(t => (
+                  <button key={t} className={`opt-btn ${d.tonNarratif === t ? 'on' : ''}`}
+                    onClick={() => on('tonNarratif', t)}>{t}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Sec3({ d, on }) {
+      const toggleC = c => on('mouvementsCamera', d.mouvementsCamera.includes(c) ? d.mouvementsCamera.filter(x => x !== c) : [...d.mouvementsCamera, c]);
+
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>03</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Réalisation & Technique</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Verrouillage technique et conformité juridique.</p>
+          </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <Lbl hint="multi-sélection">Mouvements Caméra</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {CAMERA_LIST.map(c => <Pill key={c} label={c} active={d.mouvementsCamera.includes(c)} onClick={() => toggleC(c)} />)}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <Lbl>Verrouillage Sensualité / Nudité</Lbl>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {SENSUALITE.map((s, i) => (
+                <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                  border: `2px solid ${d.niveauSensualite === i ? 'var(--border)' : 'var(--border-soft)'}`,
+                  borderRadius: 3, cursor: 'pointer', transition: 'all 0.12s',
+                  background: d.niveauSensualite === i ? 'var(--fill-1)' : 'var(--surface)' }}>
+                  <input type="radio" name="sens" checked={d.niveauSensualite === i} onChange={() => on('niveauSensualite', i)} />
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{s}</span>
+                  <span className="fm" style={{ fontSize: 11, color: 'var(--muted)' }}>0{i + 1}</span>
+                </label>
+              ))}
+            </div>
+            {d.niveauSensualite > 0 && (
+              <div style={{ display: 'flex', gap: 10, padding: '10px 13px', border: '2px solid var(--danger)',
+                borderRadius: 3, marginTop: 8, background: 'var(--danger-dim)', animation: 'fadeUp 0.2s ease-out' }}>
+                <IcAlert s={15} style={{ color: 'var(--danger)', flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)', lineHeight: 1.5 }}>
+                  HACA / ANRT : Validation juridique obligatoire avant diffusion au Maroc.
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Lbl>Résolution de Captation</Lbl>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {RESOLUTION_LIST.map(r => (
+                <label key={r} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <input type="radio" name="res" checked={d.resolution === r} onChange={() => on('resolution', r)} />
+                  <span className="fm" style={{ fontSize: 13, fontWeight: d.resolution === r ? 600 : 400 }}>{r}</span>
+                  {r.startsWith('4K') && (
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+                      background: 'var(--text)', color: 'var(--bg)', padding: '2px 8px', borderRadius: 2 }}>REQUIS</span>
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Sec4({ d, on }) {
+      const tT = t => on('typesCasting', d.typesCasting.includes(t) ? d.typesCasting.filter(x => x !== t) : [...d.typesCasting, t]);
+      const tTerr = t => on('territoires', d.territoires.includes(t) ? d.territoires.filter(x => x !== t) : [...d.territoires, t]);
+
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>04</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Casting & Droits</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Profils talents et cadre contractuel.</p>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl>Profil Casting</Lbl>
+            <textarea className="inp" rows={3} value={d.profilCasting}
+              onChange={e => on('profilCasting', e.target.value)}
+              placeholder="Âge, morphologie, expressivité, look recherché..." style={{ resize: 'none' }} />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl hint="suggestions">Types de Profils</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {CASTING_TAGS.map(t => <Pill key={t} label={t} active={d.typesCasting.includes(t)} onClick={() => tT(t)} />)}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl>Durée des Droits <span style={{ color: 'var(--danger)' }}>*</span></Lbl>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {DROITS_LIST.map(dr => (
+                <label key={dr} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '12px 8px',
+                  border: `2px solid ${d.periodeDroits === dr ? 'var(--border)' : 'var(--border-soft)'}`,
+                  borderRadius: 3, cursor: 'pointer', transition: 'all 0.12s', textAlign: 'center',
+                  background: d.periodeDroits === dr ? 'var(--text)' : 'var(--surface)' }}>
+                  <input type="radio" name="droits" checked={d.periodeDroits === dr} onChange={() => on('periodeDroits', dr)} style={{ display: 'none' }} />
+                  <span className="bc" style={{ fontSize: '1.1rem', fontWeight: 800, color: d.periodeDroits === dr ? 'var(--bg)' : 'var(--text)' }}>{dr}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Lbl hint="multi-sélection">Territoires</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {TERRITOIRE_LIST.map(t => <Pill key={t} label={t} active={d.territoires.includes(t)} onClick={() => tTerr(t)} />)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Sec5({ d, on }) {
+      const total = Object.values(d.livrables).filter(Boolean).length;
+      const toggle = (f, dur) => on('livrables', { ...d.livrables, [`${f}-${dur}`]: !d.livrables[`${f}-${dur}`] });
+
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>05</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Matrice des Livrables</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Cochez les versions à livrer.</p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px',
+              background: total > 0 ? 'var(--text)' : 'var(--fill-1)',
+              border: '2px solid var(--border)', borderRadius: 3, transition: 'all 0.2s' }}>
+              <IcGrid s={14} style={{ color: total > 0 ? 'var(--bg)' : 'var(--muted)' }} />
+              <span className="bc" style={{ fontSize: '1.3rem', fontWeight: 900, color: total > 0 ? 'var(--bg)' : 'var(--muted)' }}>{total}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: total > 0 ? 'var(--bg)' : 'var(--muted)', opacity: total > 0 ? 0.7 : 1 }}>
+                fichier{total !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={() => {
+              const all = {};
+              FORMAT_KEYS.forEach(f => DUREES.forEach(dur => { all[`${f}-${dur}`] = true; }));
+              on('livrables', all);
+            }}>Tout sélectionner</button>
+            {total > 0 && <button className="btn btn-danger btn-sm" onClick={() => on('livrables', {})}>Effacer</button>}
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '8px 0 10px', width: 130, fontFamily: 'Barlow Condensed', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', borderBottom: '2px solid var(--border)' }}>Format</th>
+                  {DUREES.map(dur => (
+                    <th key={dur} style={{ textAlign: 'center', padding: '8px 8px 10px', fontFamily: 'Barlow Condensed', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', borderBottom: '2px solid var(--border)' }}>{dur}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {FORMAT_KEYS.map(fmt => (
+                  <tr key={fmt} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    <td style={{ padding: '13px 0' }}>
+                      <span className="fm" style={{ fontSize: 12, fontWeight: 600 }}>{fmt}</span>
+                      <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{FORMAT_LABELS[fmt].split(' ')[1]}</div>
+                    </td>
+                    {DUREES.map(dur => {
+                      const key = `${fmt}-${dur}`;
+                      const ok = d.livrables[key] || false;
+                      return (
+                        <td key={dur} style={{ textAlign: 'center', padding: '13px 8px' }}>
+                          <label style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            width: 32, height: 32, border: `2px solid ${ok ? 'var(--border)' : 'var(--border-soft)'}`,
+                            borderRadius: 3, background: ok ? 'var(--text)' : 'var(--surface)', transition: 'all 0.12s' }}>
+                            {ok && <IcCheck s={13} style={{ color: 'var(--bg)' }} />}
+                            <input type="checkbox" checked={ok} onChange={() => toggle(fmt, dur)}
+                              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+                          </label>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function Sec6({ d, on }) {
+      const tS = s => on('soundDesign', d.soundDesign.includes(s) ? d.soundDesign.filter(x => x !== s) : [...d.soundDesign, s]);
+
+      return (
+        <div className="anim">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
+              <span className="bc" style={{ fontSize: '2.4rem', fontWeight: 900, lineHeight: 1, opacity: 0.07, userSelect: 'none', marginLeft: -4 }}>06</span>
+              <h2 className="bc" style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.02em', textTransform: 'uppercase', lineHeight: 1 }}>Post-Production & Audio</h2>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Finitions, sound design et étalonnage.</p>
+          </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <Lbl hint="multi-sélection">Sound Design</Lbl>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {SOUND_LIST.map(s => <Pill key={s} label={s} active={d.soundDesign.includes(s)} onClick={() => tS(s)} />)}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <Lbl>Intention d'Étalonnage</Lbl>
+            <textarea className="inp" rows={3} value={d.etalonnage}
+              onChange={e => on('etalonnage', e.target.value)}
+              placeholder="Ex: Tons ambrés et chauds. Désaturation des bleus. Contraste fort sur les textures."
+              style={{ resize: 'none' }} />
+          </div>
+
+          <div>
+            <Lbl>Notes & Instructions de Livraison</Lbl>
+            <textarea className="inp" rows={4} value={d.notesFinals}
+              onChange={e => on('notesFinals', e.target.value)}
+              placeholder="Contraintes codec, contacts post-prod, accès plateau, références visuelles..."
+              style={{ resize: 'none' }} />
+          </div>
+        </div>
+      );
+    }
+
+    /* ── PREVIEW PANEL ──────────────────────── */
+    function Preview({ d }) {
+      const [mdOk, setMdOk] = useState(false);
+      const [aiOk, setAiOk] = useState(false);
+      const [showAI, setShowAI] = useState(false);
+      const total = Object.values(d.livrables).filter(Boolean).length;
+      const elems = d.elementsDominants.filter(e => e.trim());
+
+      const cpMd = async () => {
+        try { await navigator.clipboard.writeText(genMarkdown(d)); } catch {}
+        setMdOk(true); setTimeout(() => setMdOk(false), 2500);
+      };
+      const cpAi = async () => {
+        try { await navigator.clipboard.writeText(genAIPrompt(d)); } catch {}
+        setAiOk(true); setTimeout(() => setAiOk(false), 2500);
+        setShowAI(true);
+      };
+
+      const F = ({ k, v }) => (
+        <div className="doc-field">
+          <div className="doc-fk">{k}</div>
+          <div className="doc-fv">{v || <span style={{ color: 'var(--muted)', fontStyle: 'italic', fontWeight: 400 }}>—</span>}</div>
+        </div>
+      );
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: 7, marginBottom: 12, flexShrink: 0, flexWrap: 'wrap' }}>
+            <button className={`btn btn-sm ${mdOk ? 'btn-accent' : 'btn-ghost'}`} onClick={cpMd}>
+              {mdOk ? <IcCheck s={12} /> : <IcCopy s={12} />}
+              {mdOk ? 'Copié !' : 'Markdown'}
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => exportPDF(d)}>
+              <IcPDF s={12} /> Exporter PDF
+            </button>
+            <button className={`btn btn-ai btn-sm ${aiOk ? 'btn-accent' : ''}`} onClick={cpAi}>
+              {aiOk ? <IcCheck s={12} /> : <IcStar s={12} />}
+              {aiOk ? 'Copié !' : 'Prompt IA'}
+            </button>
+          </div>
+
+          {/* Document */}
+          <div style={{ flex: 1, overflowY: 'auto', background: 'var(--surface)', border: '2px solid var(--border)', borderRadius: 3, padding: '16px 18px' }}>
+            <div className="brief-doc">
+              {/* Header */}
+              <div style={{ borderBottom: '3px solid var(--text)', paddingBottom: 12, marginBottom: 14 }}>
+                <div style={{ fontFamily: 'Barlow Condensed', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 4 }}>Brief de Production · BriefMaster Pro</div>
+                <div className="doc-title">{d.client || <span style={{ opacity: 0.3 }}>Client</span>}</div>
+                {d.projet && <div className="bc" style={{ fontSize: '0.9rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.55, marginTop: 2 }}>{d.projet}</div>}
+                <div style={{ fontSize: '0.68rem', color: 'var(--muted)', marginTop: 6, fontFamily: 'Fira Code' }}>
+                  {new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  {d.typeContenu && ` — ${d.typeContenu}`}
+                </div>
+              </div>
+
+              <div className="doc-section">A — Identité & Stratégie</div>
+              <div className="doc-kv">
+                <F k="Client" v={d.client} />
+                <F k="Projet" v={d.projet} />
+                <F k="Type" v={d.typeContenu} />
+              </div>
+              {d.virageStrategique && <div className="doc-strat" style={{ marginBottom: 8 }}>{d.virageStrategique}</div>}
+              {d.messageCle && <div className="doc-msg">"{d.messageCle}"</div>}
+
+              <div className="doc-section">B — Direction Artistique</div>
+              {d.universVisuel.length > 0 && <div className="btags" style={{ marginBottom: 8 }}>{d.universVisuel.map(u => <span key={u} className="btag">{u}</span>)}</div>}
+              {elems.length > 0 && <div className="btags" style={{ marginBottom: 8 }}>{elems.map((e, i) => <span key={i} className="btag">{e}</span>)}</div>}
+              <div className="doc-kv">
+                <F k="Lumière" v={d.lumiere} />
+                <F k="Ton" v={d.tonNarratif} />
+              </div>
+
+              <div className="doc-section">C — Réalisation & Technique</div>
+              {d.mouvementsCamera.length > 0 && <div className="btags" style={{ marginBottom: 8 }}>{d.mouvementsCamera.map(c => <span key={c} className="btag">{c}</span>)}</div>}
+              <div className="doc-kv">
+                <F k="Résolution" v={d.resolution} />
+                <F k="Sensualité" v={SENSUALITE[d.niveauSensualite]} />
+              </div>
+              {d.niveauSensualite > 0 && (
+                <div className="doc-haca"><IcAlert s={13} style={{ flexShrink: 0, marginTop: 1 }} /><span>HACA/ANRT : Conformité requise avant diffusion Maroc</span></div>
+              )}
+
+              <div className="doc-section">D — Casting & Droits</div>
+              {d.profilCasting && <div className="doc-strat" style={{ marginBottom: 8 }}>{d.profilCasting}</div>}
+              {d.typesCasting.length > 0 && <div className="btags" style={{ marginBottom: 8 }}>{d.typesCasting.map(t => <span key={t} className="btag">{t}</span>)}</div>}
+              <div className="doc-kv">
+                <F k="Droits" v={d.periodeDroits} />
+                <F k="Territoires" v={d.territoires.join(', ')} />
+              </div>
+
+              <div className="doc-section">E — Livrables</div>
+              {total > 0 && <div className="doc-total"><IcGrid s={12} />{total} fichier{total !== 1 ? 's' : ''} final{total !== 1 ? 'ux' : ''}</div>}
+              <table>
+                <thead>
+                  <tr>
+                    <th>Format</th>
+                    {DUREES.map(dur => <th key={dur}>{dur}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {FORMAT_KEYS.map(f => (
+                    <tr key={f}>
+                      <td>{FORMAT_LABELS[f]}</td>
+                      {DUREES.map(dur => {
+                        const ok = d.livrables[`${f}-${dur}`];
+                        return <td key={dur} className={ok ? 'ok' : ''}>{ok ? '✓' : '—'}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="doc-section">F — Post-Production & Audio</div>
+              {d.soundDesign.length > 0 && <div className="btags" style={{ marginBottom: 8 }}>{d.soundDesign.map(s => <span key={s} className="btag">{s}</span>)}</div>}
+              {d.etalonnage && <div className="doc-strat" style={{ marginBottom: 8 }}>{d.etalonnage}</div>}
+              {d.notesFinals && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{d.notesFinals}</div>}
+            </div>
+          </div>
+
+          {/* AI Modal */}
+          {showAI && (
+            <div className="modal-bg" onClick={() => setShowAI(false)}>
+              <div className="modal-box slide-in" onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '2px solid var(--border)', flexShrink: 0 }}>
+                  <div>
+                    <div className="bc" style={{ fontWeight: 900, fontSize: '1rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Prompt Storyboard IA</div>
+                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>À coller dans ChatGPT, Claude ou Gemini</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className={`btn btn-sm ${aiOk ? 'btn-accent' : 'btn-primary'}`} onClick={cpAi}>
+                      {aiOk ? <IcCheck s={12} /> : <IcCopy s={12} />}
+                      {aiOk ? 'Copié !' : 'Copier'}
+                    </button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowAI(false)}>
+                      <IcX s={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="modal-prompt">{genAIPrompt(d)}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ── APP ────────────────────────────────── */
+    function App() {
+      const [dark, setDark] = useState(false);
+      const [step, setStep] = useState(1);
+      const [tab, setTab] = useState('form');
+
+      const [d, setD] = useState(() => {
+        try { const s = localStorage.getItem('bmp_v2'); return s ? JSON.parse(s) : { ...INIT }; }
+        catch { return { ...INIT }; }
+      });
+
+      useEffect(() => { try { localStorage.setItem('bmp_v2', JSON.stringify(d)); } catch {} }, [d]);
+      useEffect(() => {
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.classList.toggle('light', !dark);
+      }, [dark]);
+
+      const on = useCallback((f, v) => setD(prev => ({ ...prev, [f]: v })), []);
+
+      const reset = () => {
+        if (window.confirm('Réinitialiser le formulaire ? Les données seront perdues.')) {
+          setD({ ...INIT }); setStep(1); localStorage.removeItem('bmp_v2');
+        }
+      };
+
+      const canNext = () => {
+        if (step === 1) return d.client.trim() && d.projet.trim() && d.typeContenu;
+        if (step === 4) return !!d.periodeDroits;
+        return true;
+      };
+
+      const hintMsg = () => {
+        if (!d.client.trim()) return 'Nom du client requis';
+        if (!d.projet.trim()) return 'Nom du projet requis';
+        if (!d.typeContenu) return 'Sélectionnez le type de contenu';
+        if (step === 4 && !d.periodeDroits) return 'Durée des droits requise';
+        return '';
+      };
+
+      const sections = [
+        <Sec1 d={d} on={on} />, <Sec2 d={d} on={on} />, <Sec3 d={d} on={on} />,
+        <Sec4 d={d} on={on} />, <Sec5 d={d} on={on} />, <Sec6 d={d} on={on} />,
+      ];
+
+      const pct = Math.round((step / 6) * 100);
+      const hasDraft = d.client || d.projet || d.typeContenu;
+
+      return (
+        <div style={{ minHeight: '100vh' }}>
+          {/* Accent bar */}
+          <div className="accent-bar" />
+
+          {/* ── HEADER ── */}
+          <header className="no-print" style={{
+            borderBottom: '2px solid var(--border)',
+            background: 'var(--surface)',
+            padding: '0 24px', height: 56,
+            display: 'flex', alignItems: 'center',
+            position: 'sticky', top: 3, zIndex: 100,
+          }}>
+            <div style={{ maxWidth: 1440, width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {/* Logo */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <a href="hub.html" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em',
+                  textTransform: 'uppercase', color: 'var(--muted)',
+                  textDecoration: 'none', border: '2px solid var(--border-soft)',
+                  borderRadius: 3, padding: '4px 10px',
+                  transition: 'all 0.1s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--border-soft)'; }}
+                >
+                  ← HUB
+                </a>
+                <span className="bc" style={{ fontSize: '1.35rem', fontWeight: 900, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1 }}>
+                  Brief<span style={{ background: 'var(--text)', color: 'var(--accent)', padding: '1px 4px', marginLeft: 1 }}>Master</span> Pro
+                </span>
+              </div>
+
+              {/* Progress inline */}
+              <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, maxWidth: 380, margin: '0 32px' }}>
+                <div className="prog-track" style={{ flex: 1 }}>
+                  <div className="prog-fill" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="fm" style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{step}/6</span>
+              </div>
+
+              {/* Controls */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {hasDraft && (
+                  <button className="btn btn-secondary btn-sm" onClick={reset}>
+                    <IcReset s={13} /> Reset
+                  </button>
+                )}
+                <button className="btn btn-secondary btn-sm" onClick={() => setDark(!dark)} style={{ padding: '6px 10px' }}>
+                  {dark ? <IcSun s={15} /> : <IcMoon s={15} />}
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile tabs */}
+          <div className="mob-tabs no-print" style={{ padding: '10px 14px 0', gap: 4, borderBottom: '1px solid var(--border-soft)', background: 'var(--surface)' }}>
+            {['form', 'preview'].map(t => (
+              <button key={t} onClick={() => setTab(t)} style={{
+                flex: 1, padding: '8px', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+                border: 'none', borderBottom: `3px solid ${tab === t ? 'var(--text)' : 'transparent'}`,
+                background: 'transparent', color: tab === t ? 'var(--text)' : 'var(--muted)',
+              }}>
+                {t === 'form' ? 'Formulaire' : 'Aperçu Brief'}
+              </button>
+            ))}
+          </div>
+
+          {/* Main */}
+          <main style={{ maxWidth: 1440, margin: '0 auto', padding: '24px 20px', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+
+            {/* FORM */}
+            <div className={`panel-form ${tab === 'form' ? 'active' : ''} no-print`}
+              style={{ flex: '0 0 55%', maxWidth: '55%', flexDirection: 'column' }}>
+
+              <Stepper step={step} />
+
+              <div className="card" style={{ padding: '28px 28px 24px', marginBottom: 14 }}>
+                {sections[step - 1]}
+              </div>
+
+              {!canNext() && step < 6 && (
+                <div className="val-bar">
+                  <IcAlert s={14} /> {hintMsg()}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                {step > 1
+                  ? <button className="btn btn-secondary" onClick={() => setStep(s => s - 1)}><IcL /> Précédent</button>
+                  : <div />}
+
+                {step < 6
+                  ? <button className={`btn btn-primary ${!canNext() ? 'btn-disabled' : ''}`}
+                      onClick={() => canNext() && setStep(s => s + 1)}>
+                      Suivant <IcR />
+                    </button>
+                  : <button className="btn btn-primary" onClick={() => setTab('preview')}>
+                      <IcEye s={15} /> Voir le Brief Final
+                    </button>}
+              </div>
+            </div>
+
+            {/* PREVIEW */}
+            <div className={`panel-preview ${tab === 'preview' ? 'active' : ''}`}
+              style={{ flex: 1, position: 'sticky', top: 59, height: 'calc(100vh - 84px)', flexDirection: 'column' }}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Preview d={d} />
+              </div>
+            </div>
+
+          </main>
+
+          <footer className="no-print" style={{
+            borderTop: '2px solid var(--border)',
+            padding: '12px 24px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span className="bc" style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>BriefMaster Pro</span>
+            <span className="fm" style={{ fontSize: 10, color: 'var(--muted)', opacity: 0.6 }}>{new Date().getFullYear()} · Agence</span>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
